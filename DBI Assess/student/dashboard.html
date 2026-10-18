@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Student Dashboard - DBI Assess</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/student.css">
+    
+    <style>
+        /* Additional dashboard-specific styles */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+        
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar Overlay (Mobile) -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+    <!-- ===== SIDEBAR ===== -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+            <div class="brand-icon">
+                <i class="fas fa-graduation-cap"></i>
+            </div>
+            <div>
+                <div class="brand-text">DBI <span>Assess</span></div>
+                <div class="brand-sub">Student Portal</div>
+            </div>
+        </div>
+
+        <nav class="sidebar-menu">
+            <div class="menu-label">Main</div>
+            <a href="dashboard.html" class="menu-item active">
+                <i class="fas fa-th-large"></i> Dashboard
+            </a>
+            <a href="assessments.html" class="menu-item">
+                <i class="fas fa-file-alt"></i> My Assessments
+                <span class="badge green" id="assessmentCount">0</span>
+            </a>
+            <a href="results.html" class="menu-item">
+                <i class="fas fa-chart-bar"></i> My Results
+            </a>
+            <a href="student-certificates.html" class="menu-item">
+                <i class="fas fa-certificate"></i> My Certificates
+                <span class="badge green" id="certificateCount">0</span>
+            </a>
+
+            <div class="menu-label">Account</div>
+            <a href="profile.html" class="menu-item">
+                <i class="fas fa-user"></i> Profile
+            </a>
+            <a href="#" class="menu-item" onclick="handleLogout()">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </nav>
+    </aside>
+
+    <!-- ===== MAIN CONTENT ===== -->
+    <div class="main-content">
+        <!-- Top Header -->
+        <header class="top-header">
+            <div class="header-left">
+                <button class="hamburger" id="hamburgerBtn">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="page-title">
+                    <h1>Dashboard</h1>
+                    <p>Welcome to your learning dashboard</p>
+                </div>
+            </div>
+            <div class="header-right">
+                <button class="notification-btn">
+                    <i class="fas fa-bell"></i>
+                    <span class="dot"></span>
+                </button>
+                <div class="student-profile">
+                    <div class="avatar" id="studentAvatar">S</div>
+                    <div class="student-info">
+                        <div class="name" id="studentName">Student</div>
+                        <div class="id" id="studentId">DBI-26-001</div>
+                    </div>
+                    <i class="fas fa-chevron-down chevron"></i>
+                </div>
+            </div>
+        </header>
+
+        <!-- Content Area -->
+        <div class="content-area" id="pageContent">
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-icon green"><i class="fas fa-file-alt"></i></span>
+                    </div>
+                    <div class="stat-number" id="statAssessments">0</div>
+                    <div class="stat-label">Assessments Available</div>
+                    <span class="stat-change up"><i class="fas fa-arrow-up"></i> Ready</span>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-icon blue"><i class="fas fa-clock"></i></span>
+                    </div>
+                    <div class="stat-number" id="statPending">0</div>
+                    <div class="stat-label">Pending Assessments</div>
+                    <span class="stat-change up"><i class="fas fa-arrow-up"></i> In Progress</span>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-icon orange"><i class="fas fa-check-circle"></i></span>
+                    </div>
+                    <div class="stat-number" id="statCompleted">0</div>
+                    <div class="stat-label">Completed</div>
+                    <span class="stat-change up"><i class="fas fa-arrow-up"></i> Done</span>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-icon purple"><i class="fas fa-chart-line"></i></span>
+                    </div>
+                    <div class="stat-number" id="statAverage">0%</div>
+                    <div class="stat-label">Average Score</div>
+                    <span class="stat-change up"><i class="fas fa-arrow-up"></i> Performance</span>
+                </div>
+            </div>
+
+            <!-- Recent Assessments -->
+            <div class="section-header">
+                <h2>Your Recent Assessments</h2>
+            </div>
+
+            <div class="table-container">
+                <div class="table-header">
+                    <span>Recent Activity</span>
+                </div>
+                <div class="table-scroll">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Assessment</th>
+                                <th>Status</th>
+                                <th>Score</th>
+                                <th>Date</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recentAssessmentsBody">
+                            <tr>
+                                <td colspan="5">
+                                    <div class="empty-state">
+                                        <i class="fas fa-file-alt"></i>
+                                        <h3>No assessments yet</h3>
+                                        <p>Check back later for new assessments</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== TOAST ===== -->
+    <div id="toast" class="toast">
+        <i class="fas fa-check-circle"></i>
+        <span id="toastMessage">Success!</span>
+    </div>
+
+    <!-- ============================================================
+    JAVASCRIPT
+    ============================================================ -->
+    <script>
+        // ============================================================
+        // FIREBASE CONFIGURATION
+        // ============================================================
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCdrmMMmZ0xdC2A_GXdAcWnUAa1i6QbjwQ",
+            authDomain: "dbi-assess.firebaseapp.com",
+            projectId: "dbi-assess",
+            storageBucket: "dbi-assess.firebasestorage.app",
+            messagingSenderId: "558455201415",
+            appId: "1:558455201415:web:4a12a7b7c4cff9ecb6a222",
+            measurementId: "G-FE2BPSJ4C5"
+        };
+
+        let db = null;
+        let currentUser = null;
+
+        try {
+            firebase.initializeApp(firebaseConfig);
+            db = firebase.firestore();
+            console.log('✅ Firebase initialized successfully');
+        } catch (error) {
+            console.error('❌ Firebase initialization error:', error);
+        }
+
+        // ============================================================
+        // AUTHENTICATION CHECK
+        // ============================================================
+
+        function checkAuth() {
+            const userData = sessionStorage.getItem('dbi_assess_user');
+            
+            if (userData) {
+                try {
+                    currentUser = JSON.parse(userData);
+                    console.log('👤 Student logged in:', currentUser.studentId);
+                    updateStudentUI();
+                    loadDashboardData();
+                    return;
+                } catch (e) {
+                    console.warn('Invalid session data:', e);
+                }
+            }
+
+            // If no session, redirect to login
+            console.log('🔐 No student logged in, redirecting...');
+            window.location.href = '../index.html';
+        }
+
+        function updateStudentUI() {
+            if (!currentUser) return;
+            
+            const name = currentUser.firstName || 'Student';
+            document.getElementById('studentAvatar').textContent = name.charAt(0).toUpperCase();
+            document.getElementById('studentName').textContent = name;
+            document.getElementById('studentId').textContent = currentUser.studentId || 'N/A';
+        }
+
+        // ============================================================
+        // LOAD DASHBOARD DATA
+        // ============================================================
+
+        async function loadDashboardData() {
+            try {
+                const studentId = currentUser.studentId;
+                
+                // Get results for this student
+                const resultsSnap = await db.collection('studentResults')
+                    .where('studentId', '==', studentId)
+                    .get();
+                
+                let completed = 0;
+                let totalScore = 0;
+                
+                resultsSnap.forEach(doc => {
+                    const data = doc.data();
+                    completed++;
+                    totalScore += data.score || 0;
+                });
+
+                // Get available assessments (published)
+                const assessmentsSnap = await db.collection('assessments')
+                    .where('status', '==', 'published')
+                    .get();
+                
+                const totalAssessments = assessmentsSnap.size;
+                const pending = totalAssessments - completed;
+                
+                document.getElementById('statAssessments').textContent = totalAssessments;
+                document.getElementById('statPending').textContent = pending > 0 ? pending : 0;
+                document.getElementById('statCompleted').textContent = completed;
+                document.getElementById('statAverage').textContent = completed > 0 ? 
+                    Math.round(totalScore / completed) + '%' : '0%';
+                
+                document.getElementById('assessmentCount').textContent = totalAssessments;
+
+                // Load recent assessments
+                loadRecentAssessments();
+
+            } catch (error) {
+                console.error('Error loading dashboard data:', error);
+                showToast('Error loading dashboard data', true);
+            }
+        }
+
+        async function loadRecentAssessments() {
+            try {
+                const studentId = currentUser.studentId;
+                
+                const resultsSnap = await db.collection('studentResults')
+                    .where('studentId', '==', studentId)
+                    .orderBy('submittedAt', 'desc')
+                    .limit(5)
+                    .get();
+
+                const tbody = document.getElementById('recentAssessmentsBody');
+                
+                if (resultsSnap.empty) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="5">
+                                <div class="empty-state">
+                                    <i class="fas fa-file-alt"></i>
+                                    <h3>No assessments completed yet</h3>
+                                    <p>Start your learning journey today!</p>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+
+                let html = '';
+                resultsSnap.forEach(doc => {
+                    const data = doc.data();
+                    const statusClass = data.passed ? 'passed' : 'failed';
+                    const statusText = data.passed ? '✅ Passed' : '❌ Failed';
+                    const score = data.score || 0;
+                    const assessmentTitle = data.assessmentTitle || 'Untitled';
+                    
+                    html += `
+                        <tr>
+                            <td><strong>${escapeHtml(assessmentTitle)}</strong></td>
+                            <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                            <td><strong>${score}%</strong></td>
+                            <td>${formatDate(data.submittedAt)}</td>
+                            <td>
+                                <button class="btn-primary btn-sm" onclick="window.location.href='results.html'">
+                                    <i class="fas fa-eye"></i> View
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                tbody.innerHTML = html;
+
+            } catch (error) {
+                console.error('Error loading recent assessments:', error);
+            }
+        }
+
+        // ============================================================
+        // HELPER FUNCTIONS
+        // ============================================================
+
+        function formatDate(date) {
+            if (!date) return 'N/A';
+            try {
+                if (date.toDate) {
+                    return date.toDate().toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric'
+                    });
+                }
+                return new Date(date).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                });
+            } catch {
+                return 'N/A';
+            }
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function showToast(message, isError = false) {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toastMessage');
+            
+            toastMessage.textContent = message;
+            toast.className = 'toast';
+            if (isError) {
+                toast.classList.add('error');
+                toast.querySelector('i').className = 'fas fa-exclamation-circle';
+            } else {
+                toast.classList.add('success');
+                toast.querySelector('i').className = 'fas fa-check-circle';
+            }
+            toast.classList.add('show');
+            
+            clearTimeout(toast._timeout);
+            toast._timeout = setTimeout(() => {
+                toast.classList.remove('show');
+            }, 4000);
+        }
+
+        function closeSidebar() {
+            document.getElementById('sidebar').classList.remove('open');
+            document.getElementById('sidebarOverlay').classList.remove('show');
+        }
+
+        function handleLogout() {
+            if (confirm('Are you sure you want to logout?')) {
+                sessionStorage.removeItem('dbi_assess_user');
+                window.location.href = '../index.html';
+            }
+        }
+
+        // ============================================================
+        // EVENT LISTENERS
+        // ============================================================
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check authentication
+            checkAuth();
+
+            // Hamburger menu
+            document.getElementById('hamburgerBtn').addEventListener('click', () => {
+                document.getElementById('sidebar').classList.toggle('open');
+                document.getElementById('sidebarOverlay').classList.toggle('show');
+            });
+
+            // Close sidebar on overlay click
+            document.getElementById('sidebarOverlay').addEventListener('click', closeSidebar);
+
+            // Close sidebar on window resize (desktop)
+            window.addEventListener('resize', () => {
+                if (window.innerWidth > 768) {
+                    document.getElementById('sidebar').classList.remove('open');
+                    document.getElementById('sidebarOverlay').classList.remove('show');
+                }
+            });
+        });
+
+        console.log('%c🎓 DBI Assess Student Portal', 'font-size: 20px; font-weight: bold; color: #166534;');
+        console.log('%c📚 Dashboard v1.0', 'font-size: 14px; color: #22c55e;');
+        console.log('%c📊 Welcome to your learning dashboard', 'font-size: 14px; color: #6b7280;');
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,1201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>My Certificates - DBI Assess</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    
+    <style>
+        /* ============================================================
+           STUDENT CERTIFICATES - STYLES (Consistent with Dashboard)
+           ============================================================ */
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f0f2f5;
+            min-height: 100vh;
+            overflow-x: hidden;
+            color: #1a1f2c;
+        }
+
+        /* ===== SIDEBAR ===== */
+        .sidebar {
+            width: 260px;
+            background: #1a1f2c;
+            color: white;
+            min-height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            overflow-y: auto;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+            padding-bottom: 20px;
+        }
+
+        .sidebar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .sidebar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .sidebar::-webkit-scrollbar-thumb {
+            background: #374151;
+            border-radius: 2px;
+        }
+
+        .sidebar-brand {
+            padding: 20px 20px 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            position: sticky;
+            top: 0;
+            background: #1a1f2c;
+            z-index: 2;
+        }
+
+        .sidebar-brand .brand-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #166534, #22c55e);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .sidebar-brand .brand-text {
+            font-size: 18px;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+        .sidebar-brand .brand-text span {
+            color: #22c55e;
+        }
+        .sidebar-brand .brand-sub {
+            font-size: 9px;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-top: 1px;
+        }
+
+        .sidebar-menu {
+            padding: 12px 10px;
+        }
+
+        .sidebar-menu .menu-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            color: #6b7280;
+            letter-spacing: 1.2px;
+            padding: 12px 12px 6px;
+            font-weight: 600;
+        }
+
+        .sidebar-menu .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            border-radius: 10px;
+            color: #9ca3af;
+            transition: all 0.25s ease;
+            cursor: pointer;
+            margin-bottom: 2px;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            background: none;
+            border: none;
+            width: 100%;
+            text-align: left;
+            text-decoration: none;
+        }
+
+        .sidebar-menu .menu-item:hover {
+            background: rgba(255, 255, 255, 0.06);
+            color: white;
+        }
+
+        .sidebar-menu .menu-item.active {
+            background: linear-gradient(135deg, #166534, #15803d);
+            color: white;
+            box-shadow: 0 4px 15px rgba(22, 101, 52, 0.3);
+        }
+
+        .sidebar-menu .menu-item i {
+            width: 20px;
+            text-align: center;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .sidebar-menu .menu-item .badge {
+            margin-left: auto;
+            background: #dc2626;
+            color: white;
+            font-size: 10px;
+            padding: 1px 8px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+        .sidebar-menu .menu-item .badge.green {
+            background: #22c55e;
+        }
+
+        /* ===== SIDEBAR OVERLAY ===== */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: 999;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .sidebar-overlay.show {
+            display: block;
+            opacity: 1;
+        }
+
+        /* ===== MAIN CONTENT ===== */
+        .main-content {
+            flex: 1;
+            margin-left: 260px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ===== TOP HEADER ===== */
+        .top-header {
+            background: white;
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #e5e7eb;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            min-height: 64px;
+            flex-shrink: 0;
+        }
+
+        .top-header .header-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            min-width: 0;
+        }
+
+        .top-header .header-left .hamburger {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 22px;
+            color: #1a1f2c;
+            cursor: pointer;
+            padding: 4px;
+            flex-shrink: 0;
+        }
+
+        .top-header .header-left .page-title h1 {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1a1f2c;
+        }
+
+        .top-header .header-left .page-title p {
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        .top-header .header-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-shrink: 0;
+        }
+
+        .top-header .header-right .notification-btn {
+            background: none;
+            border: none;
+            font-size: 18px;
+            color: #6b7280;
+            cursor: pointer;
+            position: relative;
+            padding: 4px;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .top-header .header-right .notification-btn:hover {
+            background: #f3f4f6;
+        }
+
+        .top-header .header-right .notification-btn .dot {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            width: 8px;
+            height: 8px;
+            background: #dc2626;
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+
+        .top-header .header-right .student-profile {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            padding: 4px 12px 4px 4px;
+            border-radius: 30px;
+            transition: background 0.2s ease;
+        }
+
+        .top-header .header-right .student-profile:hover {
+            background: #f3f4f6;
+        }
+
+        .top-header .header-right .student-profile .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #166534, #22c55e);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 13px;
+            flex-shrink: 0;
+        }
+
+        .top-header .header-right .student-profile .student-info .name {
+            font-weight: 600;
+            color: #1a1f2c;
+            font-size: 13px;
+        }
+
+        .top-header .header-right .student-profile .student-info .id {
+            color: #6b7280;
+            font-size: 11px;
+        }
+
+        .top-header .header-right .student-profile .chevron {
+            color: #6b7280;
+            font-size: 12px;
+        }
+
+        /* ===== CONTENT AREA ===== */
+        .content-area {
+            padding: 20px 24px 40px;
+            flex: 1;
+        }
+
+        /* ===== STATS CARDS ===== */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+            padding: 16px 20px;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.06);
+        }
+
+        .stat-card .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .stat-card .stat-icon {
+            font-size: 20px;
+            padding: 8px;
+            border-radius: 10px;
+        }
+
+        .stat-card .stat-icon.green { background: #dcfce7; color: #166534; }
+        .stat-card .stat-icon.blue { background: #dbeafe; color: #1d4ed8; }
+        .stat-card .stat-icon.orange { background: #fef3c7; color: #d97706; }
+        .stat-card .stat-icon.purple { background: #ede9fe; color: #7c3aed; }
+
+        .stat-card .stat-number {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1a1f2c;
+        }
+
+        .stat-card .stat-label {
+            font-size: 13px;
+            color: #6b7280;
+            margin-top: 2px;
+        }
+
+        .stat-card .stat-change {
+            font-size: 12px;
+            font-weight: 500;
+            margin-top: 6px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 10px;
+            border-radius: 20px;
+        }
+
+        .stat-card .stat-change.up {
+            color: #16a34a;
+            background: #dcfce7;
+        }
+
+        .stat-card .stat-change.down {
+            color: #dc2626;
+            background: #fee2e2;
+        }
+
+        /* ===== SECTION HEADER ===== */
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .section-header h2 {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1a1f2c;
+        }
+
+        /* ===== TABLE ===== */
+        .table-container {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+            overflow: hidden;
+        }
+
+        .table-header {
+            padding: 14px 20px;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .table-header span {
+            font-weight: 600;
+            font-size: 14px;
+            color: #1a1f2c;
+        }
+
+        .table-scroll {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 600px;
+        }
+
+        table th {
+            background: #f8fafc;
+            padding: 12px 16px;
+            text-align: left;
+            font-size: 11px;
+            font-weight: 600;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid #e5e7eb;
+            white-space: nowrap;
+        }
+
+        table td {
+            padding: 12px 16px;
+            font-size: 13px;
+            color: #1a1f2c;
+            border-bottom: 1px solid #f3f4f6;
+            vertical-align: middle;
+        }
+
+        table tr:last-child td {
+            border-bottom: none;
+        }
+
+        table tr:hover td {
+            background: #fafafa;
+        }
+
+        /* ===== STATUS BADGES ===== */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-badge.issued {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-badge.pending {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .status-badge.revoked {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .status-badge.template {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        /* ===== CERTIFICATE TYPE BADGE ===== */
+        .type-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            background: #f1f5f9;
+            color: #475569;
+        }
+
+        .type-badge i {
+            font-size: 13px;
+        }
+
+        /* ===== GRADE BADGE ===== */
+        .grade-badge {
+            display: inline-block;
+            padding: 2px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .grade-badge.outstanding { background: #dcfce7; color: #166534; }
+        .grade-badge.distinction { background: #dbeafe; color: #1d4ed8; }
+        .grade-badge.merit { background: #fef3c7; color: #d97706; }
+        .grade-badge.completion { background: #f3f4f6; color: #4b5563; }
+
+        /* ===== BUTTONS ===== */
+        .btn-primary {
+            background: linear-gradient(135deg, #166534, #22c55e);
+            color: white;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-family: 'Inter', sans-serif;
+            white-space: nowrap;
+            min-height: 40px;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(22, 101, 52, 0.3);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #1a1f2c;
+            border: 1px solid #e5e7eb;
+            padding: 8px 18px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-family: 'Inter', sans-serif;
+            white-space: nowrap;
+            min-height: 40px;
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: #e5e7eb;
+        }
+
+        .btn-sm {
+            padding: 5px 12px;
+            font-size: 12px;
+            border-radius: 8px;
+            min-height: 32px;
+        }
+
+        /* ===== EMPTY STATE ===== */
+        .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+            color: #6b7280;
+        }
+
+        .empty-state i {
+            font-size: 40px;
+            color: #d1d5db;
+            margin-bottom: 14px;
+            display: block;
+        }
+
+        .empty-state h3 {
+            font-size: 17px;
+            color: #1a1f2c;
+            margin-bottom: 6px;
+        }
+
+        .empty-state p {
+            font-size: 14px;
+        }
+
+        /* ===== TOAST ===== */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: #1a1f2c;
+            color: white;
+            padding: 14px 22px;
+            border-radius: 12px;
+            font-weight: 500;
+            font-size: 13px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transform: translateY(120%);
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            max-width: 90%;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+        }
+
+        .toast i {
+            font-size: 18px;
+        }
+
+        .toast.success { background: #166534; }
+        .toast.error { background: #dc2626; }
+
+        /* ===== CERTIFICATE PREVIEW MODAL ===== */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            z-index: 1500;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 18px;
+            max-width: 850px;
+            width: 100%;
+            max-height: 90vh;
+            overflow: hidden;
+            animation: modalSlideUp 0.3s ease;
+        }
+
+        @keyframes modalSlideUp {
+            from { opacity: 0; transform: translateY(30px) scale(0.96); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .modal-header {
+            padding: 18px 22px;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+        }
+
+        .modal-header h3 {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1a1f2c;
+        }
+
+        .modal-header .close-modal {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #6b7280;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .modal-header .close-modal:hover {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .modal-body {
+            padding: 22px;
+            max-height: calc(90vh - 140px);
+            overflow-y: auto;
+        }
+
+        .modal-footer {
+            padding: 16px 22px;
+            border-top: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            background: #fafafa;
+            border-radius: 0 0 18px 18px;
+            flex-wrap: wrap;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 1024px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                width: 280px;
+            }
+            .sidebar.open {
+                transform: translateX(0);
+                box-shadow: 0 0 40px rgba(0,0,0,0.3);
+            }
+            .sidebar-overlay.show {
+                display: block;
+            }
+            .main-content {
+                margin-left: 0;
+            }
+            .top-header {
+                padding: 10px 16px;
+                min-height: 56px;
+            }
+            .top-header .header-left .hamburger {
+                display: block;
+            }
+            .top-header .header-left .page-title h1 {
+                font-size: 16px;
+            }
+            .top-header .header-left .page-title p {
+                font-size: 11px;
+            }
+            .top-header .header-right .student-profile .student-info {
+                display: none;
+            }
+            .content-area {
+                padding: 16px;
+            }
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+            }
+            .stat-card {
+                padding: 14px 16px;
+            }
+            .stat-card .stat-number {
+                font-size: 20px;
+            }
+            table {
+                min-width: 600px;
+                font-size: 12px;
+            }
+            table th, table td {
+                padding: 10px 12px;
+            }
+            .modal {
+                max-width: 95%;
+                margin: 10px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+            }
+            .stat-card {
+                padding: 12px;
+            }
+            .stat-card .stat-number {
+                font-size: 17px;
+            }
+            .stat-card .stat-label {
+                font-size: 11px;
+            }
+            .stat-card .stat-icon {
+                font-size: 16px;
+                padding: 6px;
+            }
+            table {
+                font-size: 11px;
+                min-width: 500px;
+            }
+            table th, table td {
+                padding: 8px 10px;
+            }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #c1c7cd;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a0a8b0;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar Overlay (Mobile) -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+    <!-- ===== SIDEBAR ===== -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+            <div class="brand-icon">
+                <i class="fas fa-graduation-cap"></i>
+            </div>
+            <div>
+                <div class="brand-text">DBI <span>Assess</span></div>
+                <div class="brand-sub">Student Portal</div>
+            </div>
+        </div>
+
+        <nav class="sidebar-menu">
+            <div class="menu-label">Main</div>
+            <a href="dashboard.html" class="menu-item">
+                <i class="fas fa-th-large"></i> Dashboard
+            </a>
+            <a href="assessments.html" class="menu-item">
+                <i class="fas fa-file-alt"></i> My Assessments
+                <span class="badge green" id="assessmentCount">0</span>
+            </a>
+            <a href="results.html" class="menu-item">
+                <i class="fas fa-chart-bar"></i> My Results
+            </a>
+            <a href="student-certificates.html" class="menu-item active">
+                <i class="fas fa-certificate"></i> My Certificates
+                <span class="badge green" id="certificateCount">0</span>
+            </a>
+
+            <div class="menu-label">Account</div>
+            <a href="profile.html" class="menu-item">
+                <i class="fas fa-user"></i> Profile
+            </a>
+            <a href="#" class="menu-item" onclick="handleLogout()">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </nav>
+    </aside>
+
+    <!-- ===== MAIN CONTENT ===== -->
+    <div class="main-content">
+        <!-- Top Header -->
+        <header class="top-header">
+            <div class="header-left">
+                <button class="hamburger" id="hamburgerBtn">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="page-title">
+                    <h1>My Certificates</h1>
+                    <p>View and download your earned certificates</p>
+                </div>
+            </div>
+            <div class="header-right">
+                <button class="notification-btn">
+                    <i class="fas fa-bell"></i>
+                    <span class="dot"></span>
+                </button>
+                <div class="student-profile">
+                    <div class="avatar" id="studentAvatar">S</div>
+                    <div class="student-info">
+                        <div class="name" id="studentName">Student</div>
+                        <div class="id" id="studentId">DBI-26-001</div>
+                    </div>
+                    <i class="fas fa-chevron-down chevron"></i>
+                </div>
+            </div>
+        </header>
+
+        <!-- Content Area -->
+        <div class="content-area" id="pageContent">
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-icon green"><i class="fas fa-certificate"></i></span>
+                    </div>
+                    <div class="stat-number" id="statTotal">0</div>
+                    <div class="stat-label">Total Certificates</div>
+                    <span class="stat-change up"><i class="fas fa-arrow-up"></i> Earned</span>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-icon blue"><i class="fas fa-check-circle"></i></span>
+                    </div>
+                    <div class="stat-number" id="statIssued">0</div>
+                    <div class="stat-label">Issued &amp; Unlocked</div>
+                    <span class="stat-change up"><i class="fas fa-arrow-up"></i> Available</span>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-icon orange"><i class="fas fa-clock"></i></span>
+                    </div>
+                    <div class="stat-number" id="statPending">0</div>
+                    <div class="stat-label">Pending Release</div>
+                    <span class="stat-change up"><i class="fas fa-arrow-up"></i> Locked</span>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-icon purple"><i class="fas fa-trophy"></i></span>
+                    </div>
+                    <div class="stat-number" id="statAchievement">0</div>
+                    <div class="stat-label">Achievement Certificates</div>
+                    <span class="stat-change up"><i class="fas fa-arrow-up"></i> Performance</span>
+                </div>
+            </div>
+
+            <!-- Certificates List -->
+            <div class="section-header">
+                <h2>Your Certificates</h2>
+            </div>
+
+            <div class="table-container">
+                <div class="table-header">
+                    <span>Certificate Records</span>
+                    <span class="table-count" id="certificateCount">0 items</span>
+                </div>
+                <div class="table-scroll">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Certificate</th>
+                                <th>Type</th>
+                                <th>Grade</th>
+                                <th>Status</th>
+                                <th>Issued Date</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="certificatesBody">
+                            <tr>
+                                <td colspan="6">
+                                    <div class="empty-state">
+                                        <i class="fas fa-spinner fa-spin"></i>
+                                        <h3>Loading certificates...</h3>
+                                        <p>Please wait</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== TOAST ===== -->
+    <div id="toast" class="toast">
+        <i class="fas fa-check-circle"></i>
+        <span id="toastMessage">Success!</span>
+    </div>
+
+    <!-- ===== MODAL ===== -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="modalTitle">Certificate</h3>
+                <button class="close-modal" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Dynamic content -->
+            </div>
+            <div class="modal-footer" id="modalFooter">
+                <button class="btn-secondary" onclick="closeModal()">Close</button>
+                <button class="btn-primary" id="modalActionBtn">
+                    <i class="fas fa-download"></i> Download
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================
+    JAVASCRIPT - Load Student Certificates Module
+    ============================================================ -->
+    
+    <!-- Load the Student Certificates module -->
+    <script src="js/certificates.js"></script>
+    
+    <script>
+        // ============================================================
+        // FIREBASE CONFIGURATION
+        // ============================================================
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCdrmMMmZ0xdC2A_GXdAcWnUAa1i6QbjwQ",
+            authDomain: "dbi-assess.firebaseapp.com",
+            projectId: "dbi-assess",
+            storageBucket: "dbi-assess.firebasestorage.app",
+            messagingSenderId: "558455201415",
+            appId: "1:558455201415:web:4a12a7b7c4cff9ecb6a222",
+            measurementId: "G-FE2BPSJ4C5"
+        };
+
+        let db = null;
+        let currentUser = null;
+
+        try {
+            firebase.initializeApp(firebaseConfig);
+            db = firebase.firestore();
+            console.log('✅ Firebase initialized successfully');
+        } catch (error) {
+            console.error('❌ Firebase initialization error:', error);
+        }
+
+        // ============================================================
+        // AUTHENTICATION CHECK
+        // ============================================================
+
+        function checkAuth() {
+            const userData = sessionStorage.getItem('dbi_assess_user');
+            
+            if (userData) {
+                try {
+                    currentUser = JSON.parse(userData);
+                    console.log('👤 Student logged in:', currentUser);
+                    console.log('🆔 Student ID:', currentUser.studentId);
+                    updateStudentUI();
+                    
+                    // Initialize the StudentCertificates module
+                    if (typeof StudentCertificates !== 'undefined') {
+                        console.log('✅ StudentCertificates module found, initializing...');
+                        StudentCertificates.init(db, currentUser);
+                    } else {
+                        console.error('❌ StudentCertificates module not loaded. Check if js/certificates.js is loaded correctly.');
+                        showToast('Error loading certificates module. Please refresh the page.', true);
+                    }
+                    return;
+                } catch (e) {
+                    console.warn('Invalid session data:', e);
+                }
+            }
+
+            console.log('🔐 No student logged in, redirecting...');
+            window.location.href = '../index.html';
+        }
+
+        function updateStudentUI() {
+            if (!currentUser) return;
+            
+            const name = currentUser.firstName || 'Student';
+            const avatarEl = document.getElementById('studentAvatar');
+            const nameEl = document.getElementById('studentName');
+            const idEl = document.getElementById('studentId');
+            
+            if (avatarEl) avatarEl.textContent = name.charAt(0).toUpperCase();
+            if (nameEl) nameEl.textContent = name;
+            if (idEl) idEl.textContent = currentUser.studentId || 'N/A';
+        }
+
+        // ============================================================
+        // GLOBAL HELPER FUNCTIONS
+        // ============================================================
+
+        function closeSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            if (sidebar) sidebar.classList.remove('open');
+            if (overlay) overlay.classList.remove('show');
+        }
+
+        function handleLogout() {
+            if (confirm('Are you sure you want to logout?')) {
+                sessionStorage.removeItem('dbi_assess_user');
+                window.location.href = '../index.html';
+            }
+        }
+
+        function showToast(message, isError = false) {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toastMessage');
+            
+            if (!toast || !toastMessage) return;
+            
+            toastMessage.textContent = message;
+            toast.className = 'toast';
+            if (isError) {
+                toast.classList.add('error');
+                const icon = toast.querySelector('i');
+                if (icon) icon.className = 'fas fa-exclamation-circle';
+            } else {
+                toast.classList.add('success');
+                const icon = toast.querySelector('i');
+                if (icon) icon.className = 'fas fa-check-circle';
+            }
+            toast.classList.add('show');
+            
+            clearTimeout(toast._timeout);
+            toast._timeout = setTimeout(() => {
+                toast.classList.remove('show');
+            }, 4000);
+        }
+
+        function openModal() {
+            const overlay = document.getElementById('modalOverlay');
+            if (overlay) {
+                overlay.classList.add('show');
+                document.body.style.overflow = 'hidden';
+            }
+        }
+
+        function closeModal() {
+            const overlay = document.getElementById('modalOverlay');
+            if (overlay) {
+                overlay.classList.remove('show');
+                document.body.style.overflow = '';
+            }
+        }
+
+        // ============================================================
+        // EVENT LISTENERS
+        // ============================================================
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check authentication
+            checkAuth();
+
+            // Hamburger menu
+            const hamburgerBtn = document.getElementById('hamburgerBtn');
+            if (hamburgerBtn) {
+                hamburgerBtn.addEventListener('click', () => {
+                    const sidebar = document.getElementById('sidebar');
+                    const overlay = document.getElementById('sidebarOverlay');
+                    if (sidebar) sidebar.classList.toggle('open');
+                    if (overlay) overlay.classList.toggle('show');
+                });
+            }
+
+            // Close sidebar on overlay click
+            const overlay = document.getElementById('sidebarOverlay');
+            if (overlay) {
+                overlay.addEventListener('click', closeSidebar);
+            }
+
+            // Close sidebar on window resize (desktop)
+            window.addEventListener('resize', () => {
+                if (window.innerWidth > 768) {
+                    const sidebar = document.getElementById('sidebar');
+                    const overlay = document.getElementById('sidebarOverlay');
+                    if (sidebar) sidebar.classList.remove('open');
+                    if (overlay) overlay.classList.remove('show');
+                }
+            });
+
+            // Escape key to close modal
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    closeModal();
+                }
+            });
+        });
+
+        console.log('%c📜 DBI Assess - Student Certificates', 'font-size: 20px; font-weight: bold; color: #166534;');
+        console.log('%c🏆 View and download your certificates', 'font-size: 14px; color: #22c55e;');
+    </script>
+
+</body>
+</html>

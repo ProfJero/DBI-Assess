@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>My Assessments - DBI Assess</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/student.css">
+    
+    <style>
+        .btn-primary.btn-sm {
+            padding: 6px 14px;
+            font-size: 12px;
+            border-radius: 8px;
+            min-height: 32px;
+        }
+        .btn-primary.btn-sm:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            background: #9ca3af;
+        }
+        .btn-primary.btn-sm:disabled:hover {
+            transform: none;
+            box-shadow: none;
+        }
+        .attempts-info {
+            font-size: 11px;
+            color: #6b7280;
+            display: block;
+            margin-top: 2px;
+        }
+        .attempts-info .remaining {
+            color: #16a34a;
+            font-weight: 600;
+        }
+        .attempts-info .maxed {
+            color: #dc2626;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar Overlay (Mobile) -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+    <!-- ===== SIDEBAR ===== -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+            <div class="brand-icon">
+                <i class="fas fa-graduation-cap"></i>
+            </div>
+            <div>
+                <div class="brand-text">DBI <span>Assess</span></div>
+                <div class="brand-sub">Student Portal</div>
+            </div>
+        </div>
+
+        <nav class="sidebar-menu">
+            <div class="menu-label">Main</div>
+            <a href="dashboard.html" class="menu-item">
+                <i class="fas fa-th-large"></i> Dashboard
+            </a>
+            <a href="assessments.html" class="menu-item active">
+                <i class="fas fa-file-alt"></i> My Assessments
+                <span class="badge green" id="assessmentCount">0</span>
+            </a>
+            <a href="results.html" class="menu-item">
+                <i class="fas fa-chart-bar"></i> My Results
+            </a>
+            <a href="student-certificates.html" class="menu-item">
+                <i class="fas fa-certificate"></i> My Certificates
+                <span class="badge green" id="certificateCount">0</span>
+            </a>
+
+            <div class="menu-label">Account</div>
+            <a href="profile.html" class="menu-item">
+                <i class="fas fa-user"></i> Profile
+            </a>
+            <a href="#" class="menu-item" onclick="handleLogout()">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </nav>
+    </aside>
+
+    <!-- ===== MAIN CONTENT ===== -->
+    <div class="main-content">
+        <!-- Top Header -->
+        <header class="top-header">
+            <div class="header-left">
+                <button class="hamburger" id="hamburgerBtn">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="page-title">
+                    <h1>My Assessments</h1>
+                    <p>View and take your assessments</p>
+                </div>
+            </div>
+            <div class="header-right">
+                <button class="notification-btn">
+                    <i class="fas fa-bell"></i>
+                    <span class="dot"></span>
+                </button>
+                <div class="student-profile">
+                    <div class="avatar" id="studentAvatar">S</div>
+                    <div class="student-info">
+                        <div class="name" id="studentName">Student</div>
+                        <div class="id" id="studentId">DBI-26-001</div>
+                    </div>
+                    <i class="fas fa-chevron-down chevron"></i>
+                </div>
+            </div>
+        </header>
+
+        <!-- Content Area -->
+        <div class="content-area" id="pageContent">
+            <!-- Content will be rendered by JavaScript -->
+        </div>
+    </div>
+
+    <!-- ===== TOAST ===== -->
+    <div id="toast" class="toast">
+        <i class="fas fa-check-circle"></i>
+        <span id="toastMessage">Success!</span>
+    </div>
+
+    <!-- ============================================================
+    JAVASCRIPT
+    ============================================================ -->
+    <script src="js/assessments.js"></script>
+    
+    <script>
+        // ============================================================
+        // FIREBASE CONFIGURATION
+        // ============================================================
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCdrmMMmZ0xdC2A_GXdAcWnUAa1i6QbjwQ",
+            authDomain: "dbi-assess.firebaseapp.com",
+            projectId: "dbi-assess",
+            storageBucket: "dbi-assess.firebasestorage.app",
+            messagingSenderId: "558455201415",
+            appId: "1:558455201415:web:4a12a7b7c4cff9ecb6a222",
+            measurementId: "G-FE2BPSJ4C5"
+        };
+
+        let db = null;
+        let currentUser = null;
+
+        try {
+            firebase.initializeApp(firebaseConfig);
+            db = firebase.firestore();
+            console.log('✅ Firebase initialized successfully');
+        } catch (error) {
+            console.error('❌ Firebase initialization error:', error);
+        }
+
+        // ============================================================
+        // AUTHENTICATION CHECK
+        // ============================================================
+
+        function checkAuth() {
+            const userData = sessionStorage.getItem('dbi_assess_user');
+            
+            if (userData) {
+                try {
+                    currentUser = JSON.parse(userData);
+                    console.log('👤 Student logged in:', currentUser.studentId);
+                    updateStudentUI();
+                    
+                    // Initialize Assessments module
+                    const container = document.getElementById('pageContent');
+                    const app = {
+                        db: db,
+                        currentUser: currentUser,
+                        escapeHtml: escapeHtml,
+                        showToast: showToast,
+                        startAssessment: startAssessment
+                    };
+                    
+                    if (typeof Assessments !== 'undefined') {
+                        Assessments.render(container, app);
+                    }
+                    return;
+                } catch (e) {
+                    console.warn('Invalid session data:', e);
+                }
+            }
+
+            console.log('🔐 No student logged in, redirecting...');
+            window.location.href = '../index.html';
+        }
+
+        function updateStudentUI() {
+            if (!currentUser) return;
+            
+            const name = currentUser.firstName || 'Student';
+            document.getElementById('studentAvatar').textContent = name.charAt(0).toUpperCase();
+            document.getElementById('studentName').textContent = name;
+            document.getElementById('studentId').textContent = currentUser.studentId || 'N/A';
+        }
+
+        // ============================================================
+        // START ASSESSMENT
+        // ============================================================
+
+        function startAssessment(assessmentId) {
+            console.log('🚀 Starting/Resuming assessment with ID:', assessmentId);
+            window.location.href = `take-assessment.html?id=${assessmentId}`;
+        }
+
+        // ============================================================
+        // HELPER FUNCTIONS
+        // ============================================================
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function showToast(message, isError = false) {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toastMessage');
+            
+            toastMessage.textContent = message;
+            toast.className = 'toast';
+            if (isError) {
+                toast.classList.add('error');
+                toast.querySelector('i').className = 'fas fa-exclamation-circle';
+            } else {
+                toast.classList.add('success');
+                toast.querySelector('i').className = 'fas fa-check-circle';
+            }
+            toast.classList.add('show');
+            
+            clearTimeout(toast._timeout);
+            toast._timeout = setTimeout(() => {
+                toast.classList.remove('show');
+            }, 4000);
+        }
+
+        function closeSidebar() {
+            document.getElementById('sidebar').classList.remove('open');
+            document.getElementById('sidebarOverlay').classList.remove('show');
+        }
+
+        function handleLogout() {
+            if (confirm('Are you sure you want to logout?')) {
+                sessionStorage.removeItem('dbi_assess_user');
+                window.location.href = '../index.html';
+            }
+        }
+
+        // ============================================================
+        // EVENT LISTENERS
+        // ============================================================
+
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAuth();
+
+            document.getElementById('hamburgerBtn').addEventListener('click', () => {
+                document.getElementById('sidebar').classList.toggle('open');
+                document.getElementById('sidebarOverlay').classList.toggle('show');
+            });
+
+            document.getElementById('sidebarOverlay').addEventListener('click', closeSidebar);
+
+            window.addEventListener('resize', () => {
+                if (window.innerWidth > 768) {
+                    document.getElementById('sidebar').classList.remove('open');
+                    document.getElementById('sidebarOverlay').classList.remove('show');
+                }
+            });
+        });
+
+        console.log('%c🎓 DBI Assess Student Portal', 'font-size: 20px; font-weight: bold; color: #166534;');
+        console.log('%c📝 My Assessments', 'font-size: 14px; color: #22c55e;');
+        console.log('%c📚 View and take your assessments', 'font-size: 14px; color: #6b7280;');
+    </script>
+
+</body>
+</html>

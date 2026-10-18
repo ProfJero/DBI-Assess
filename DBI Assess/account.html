@@ -1,0 +1,1215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>DBI Assess - Account Creator</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            background: #f0f2f5;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .header .logo .icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #166534, #22c55e);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+        }
+
+        .header .logo h1 {
+            font-size: 28px;
+            font-weight: 800;
+            color: #1a1f2c;
+        }
+
+        .header .logo h1 span {
+            color: #166534;
+        }
+
+        .header p {
+            color: #6b7280;
+            font-size: 16px;
+        }
+
+        .header .warning {
+            margin-top: 12px;
+            padding: 12px 16px;
+            background: #fef3c7;
+            border-radius: 10px;
+            color: #92400e;
+            font-size: 14px;
+            border-left: 4px solid #f59e0b;
+        }
+
+        .header .warning i {
+            margin-right: 8px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 4px;
+            background: white;
+            border-radius: 12px;
+            padding: 4px;
+            margin-bottom: 24px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .tabs button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+            background: transparent;
+            color: #6b7280;
+        }
+
+        .tabs button:hover {
+            background: #f3f4f6;
+        }
+
+        .tabs button.active {
+            background: #166534;
+            color: white;
+            box-shadow: 0 4px 12px rgba(22, 101, 52, 0.2);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e5e7eb;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #1a1f2c;
+            margin-bottom: 6px;
+        }
+
+        .form-group label .required {
+            color: #dc2626;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 14px;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.3s ease;
+            background: #f8fafc;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            border-color: #22c55e;
+            outline: none;
+            background: white;
+            box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.1);
+        }
+
+        .form-group .help-text {
+            font-size: 12px;
+            color: #6b7280;
+            margin-top: 4px;
+        }
+
+        .form-group .help-text i {
+            margin-right: 4px;
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #166534, #22c55e);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(22, 101, 52, 0.3);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .btn-primary .spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        .btn-primary.loading .spinner {
+            display: inline-block;
+        }
+
+        .btn-primary.loading .btn-text {
+            display: none;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .btn-secondary {
+            width: 100%;
+            padding: 14px;
+            background: #f3f4f6;
+            color: #1a1f2c;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-secondary:hover {
+            background: #e5e7eb;
+        }
+
+        .result-box {
+            margin-top: 20px;
+            padding: 16px;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .result-box.success {
+            display: block;
+            background: #dcfce7;
+            border: 1px solid #86efac;
+            color: #166534;
+        }
+
+        .result-box.error {
+            display: block;
+            background: #fee2e2;
+            border: 1px solid #fca5a5;
+            color: #dc2626;
+        }
+
+        .result-box .result-title {
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .result-box .result-details {
+            font-size: 14px;
+            line-height: 1.8;
+        }
+
+        .result-box .result-details code {
+            background: rgba(0, 0, 0, 0.05);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 13px;
+        }
+
+        .result-box .copy-btn {
+            margin-top: 12px;
+            padding: 8px 16px;
+            background: rgba(0, 0, 0, 0.05);
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            color: #1a1f2c;
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .result-box .copy-btn:hover {
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        .generated-credentials {
+            background: #1a1f2c;
+            color: #22c55e;
+            padding: 16px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 13px;
+            margin-top: 12px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        /* Existing Admin Display */
+        .existing-admins {
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .existing-admins h4 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1a1f2c;
+            margin-bottom: 12px;
+        }
+
+        .admin-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 14px;
+            background: #f8fafc;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .admin-item .admin-email {
+            font-weight: 500;
+            color: #1a1f2c;
+        }
+
+        .admin-item .admin-role {
+            color: #6b7280;
+            font-size: 12px;
+        }
+
+        .admin-item .admin-actions button {
+            background: none;
+            border: none;
+            color: #dc2626;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .admin-item .admin-actions button:hover {
+            background: #fee2e2;
+        }
+
+        @media (max-width: 480px) {
+            .card {
+                padding: 20px;
+            }
+
+            .header .logo h1 {
+                font-size: 22px;
+            }
+
+            .tabs button {
+                font-size: 12px;
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- Header -->
+    <div class="header">
+        <div class="logo">
+            <div class="icon"><i class="fas fa-user-plus"></i></div>
+            <h1>DBI <span>Assess</span></h1>
+        </div>
+        <p>Create admin and student accounts for testing</p>
+        <div class="warning">
+            <i class="fas fa-exclamation-triangle"></i>
+            This page is for development/testing only. Do not deploy to production.
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+        <button class="active" data-tab="admin" onclick="switchTab('admin')">
+            <i class="fas fa-user-shield"></i> Admin
+        </button>
+        <button data-tab="student" onclick="switchTab('student')">
+            <i class="fas fa-user-graduate"></i> Student
+        </button>
+        <button data-tab="list" onclick="switchTab('list')">
+            <i class="fas fa-list"></i> List Admins
+        </button>
+    </div>
+
+    <!-- Admin Tab -->
+    <div class="tab-content active" id="tab-admin">
+        <div class="card">
+            <h3 style="margin-bottom: 20px; font-size: 18px; color: #1a1f2c;">
+                <i class="fas fa-user-shield" style="color: #166534; margin-right: 8px;"></i>
+                Create Admin Account
+            </h3>
+
+            <form id="adminForm" onsubmit="createAdmin(event)">
+                <div class="form-group">
+                    <label>Email <span class="required">*</span></label>
+                    <input type="email" id="adminEmail" placeholder="admin@dbi.org" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Password <span class="required">*</span></label>
+                    <input type="password" id="adminPassword" placeholder="Min 6 characters" required minlength="6">
+                    <div class="help-text"><i class="fas fa-info-circle"></i> Must be at least 6 characters</div>
+                </div>
+
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" id="adminName" placeholder="e.g., John Doe">
+                </div>
+
+                <div class="form-group">
+                    <label>Role</label>
+                    <select id="adminRole">
+                        <option value="Super Admin">Super Admin</option>
+                        <option value="Admin">Admin</option>
+                        <option value="Editor">Editor</option>
+                        <option value="Viewer">Viewer</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn-primary" id="adminSubmitBtn">
+                    <span class="btn-text"><i class="fas fa-plus-circle"></i> Create Admin</span>
+                    <span class="spinner"></span>
+                </button>
+            </form>
+
+            <div id="adminResult" class="result-box"></div>
+        </div>
+    </div>
+
+    <!-- Student Tab -->
+    <div class="tab-content" id="tab-student">
+        <div class="card">
+            <h3 style="margin-bottom: 20px; font-size: 18px; color: #1a1f2c;">
+                <i class="fas fa-user-graduate" style="color: #166534; margin-right: 8px;"></i>
+                Create Student Account
+            </h3>
+
+            <form id="studentForm" onsubmit="createStudent(event)">
+                <div class="form-group">
+                    <label>Student ID <span class="required">*</span></label>
+                    <input type="text" id="studentId" placeholder="e.g., DBI-26-001" required>
+                    <div class="help-text"><i class="fas fa-info-circle"></i> Format: DBI-YY-XXX (e.g., DBI-26-001)</div>
+                </div>
+
+                <div class="form-group">
+                    <label>Password <span class="required">*</span></label>
+                    <input type="text" id="studentPassword" placeholder="e.g., DBI#1234" required>
+                    <div class="help-text"><i class="fas fa-info-circle"></i> Format: DBI#XXXX (4 random numbers)</div>
+                </div>
+
+                <div class="form-group">
+                    <label>First Name <span class="required">*</span></label>
+                    <input type="text" id="studentFirstName" placeholder="First name" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Last Name <span class="required">*</span></label>
+                    <input type="text" id="studentLastName" placeholder="Last name" required>
+                </div>
+
+                <div class="form-group">
+                    <label>School</label>
+                    <input type="text" id="studentSchool" placeholder="e.g., Abura Dunkwa SHS">
+                </div>
+
+                <div class="form-group">
+                    <label>Community</label>
+                    <input type="text" id="studentCommunity" placeholder="e.g., Ayeldu">
+                </div>
+
+                <div class="form-group">
+                    <label>Education Level</label>
+                    <select id="studentEducationLevel">
+                        <option value="jhs-3">JHS 3</option>
+                        <option value="shs-1">SHS 1</option>
+                        <option value="shs-2">SHS 2</option>
+                        <option value="shs-3">SHS 3</option>
+                        <option value="year-1">Year 1 (Tertiary)</option>
+                        <option value="year-2">Year 2 (Tertiary)</option>
+                        <option value="year-3">Year 3 (Tertiary)</option>
+                        <option value="year-4">Year 4 (Tertiary)</option>
+                        <option value="postgraduate">Postgraduate</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Phone</label>
+                    <input type="tel" id="studentPhone" placeholder="+233 24 123 4567">
+                </div>
+
+                <div class="form-group">
+                    <label>Email (Optional)</label>
+                    <input type="email" id="studentEmail" placeholder="student@example.com">
+                </div>
+
+                <button type="submit" class="btn-primary" id="studentSubmitBtn">
+                    <span class="btn-text"><i class="fas fa-plus-circle"></i> Create Student</span>
+                    <span class="spinner"></span>
+                </button>
+            </form>
+
+            <div id="studentResult" class="result-box"></div>
+        </div>
+    </div>
+
+    <!-- List Admins Tab -->
+    <div class="tab-content" id="tab-list">
+        <div class="card">
+            <h3 style="margin-bottom: 20px; font-size: 18px; color: #1a1f2c;">
+                <i class="fas fa-list" style="color: #166534; margin-right: 8px;"></i>
+                Existing Admins
+            </h3>
+            <div id="adminList">
+                <div style="text-align: center; padding: 20px; color: #6b7280;">
+                    <div class="loading-spinner" style="width: 24px; height: 24px; border: 3px solid #f3f4f6; border-top: 3px solid #166534; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 12px;"></div>
+                    Loading admins...
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ============================================================
+    // FIREBASE CONFIG - Assessment Database (dbi-assess)
+    // ============================================================
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyCdrmMMmZ0xdC2A_GXdAcWnUAa1i6QbjwQ",
+        authDomain: "dbi-assess.firebaseapp.com",
+        projectId: "dbi-assess",
+        storageBucket: "dbi-assess.firebasestorage.app",
+        messagingSenderId: "558455201415",
+        appId: "1:558455201415:web:4a12a7b7c4cff9ecb6a222",
+        measurementId: "G-FE2BPSJ4C5"
+    };
+
+    let auth, db;
+
+    try {
+        firebase.initializeApp(firebaseConfig);
+        auth = firebase.auth();
+        db = firebase.firestore();
+        console.log('✅ Firebase initialized successfully');
+    } catch (error) {
+        console.error('❌ Firebase initialization error:', error);
+        showToast('Failed to initialize Firebase', true);
+    }
+
+    // ============================================================
+    // MAIN FIREBASE (rth-admin-dues) - For student ID counter
+    // ============================================================
+
+    const mainFirebaseConfig = {
+        apiKey: "AIzaSyDqB6Qekb-YcaPzEqvlHKhFGDOx6nh-7bA",
+        authDomain: "rth-admin-dues.firebaseapp.com",
+        projectId: "rth-admin-dues",
+        storageBucket: "rth-admin-dues.firebasestorage.app",
+        messagingSenderId: "825570303872",
+        appId: "1:825570303872:web:89fe0f6b751b7ae2f42b65",
+        measurementId: "G-6512Y183F4"
+    };
+
+    let mainDb = null;
+    let mainDbInitialized = false;
+
+    try {
+        if (!firebase.apps.some(app => app.name === 'mainApp')) {
+            const mainApp = firebase.initializeApp(mainFirebaseConfig, 'mainApp');
+            mainDb = firebase.firestore(mainApp);
+            mainDbInitialized = true;
+            console.log('✅ Main Firebase (rth-admin-dues) initialized successfully');
+        } else {
+            mainDb = firebase.firestore(firebase.app('mainApp'));
+            mainDbInitialized = true;
+            console.log('✅ Main Firebase already initialized');
+        }
+    } catch (error) {
+        console.error('❌ Main Firebase initialization error:', error);
+    }
+
+    // ============================================================
+    // TAB SWITCHING
+    // ============================================================
+
+    function switchTab(tab) {
+        document.querySelectorAll('.tabs button').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.tab === tab);
+        });
+
+        document.querySelectorAll('.tab-content').forEach(content => {
+            content.classList.remove('active');
+        });
+        document.getElementById(`tab-${tab}`).classList.add('active');
+
+        if (tab === 'list') {
+            loadAdmins();
+        }
+    }
+
+    // ============================================================
+    // STUDENT ID GENERATION HELPERS
+    // ============================================================
+
+    function getShortYear() {
+        const year = new Date().getFullYear();
+        return String(year).slice(-2);
+    }
+
+    /**
+     * Get the current highest sequence number from existing registrations
+     */
+    async function getCurrentMaxSequence() {
+        if (!mainDbInitialized) {
+            console.warn('Main Firebase not initialized, using random fallback');
+            return Math.floor(Math.random() * 100);
+        }
+
+        try {
+            const shortYear = getShortYear();
+            const prefix = `DBI-${shortYear}-`;
+            
+            // Check the counter in Firestore
+            const counterRef = mainDb.collection('systemCounters').doc('studentIdCounter');
+            const counterDoc = await counterRef.get();
+            
+            if (counterDoc.exists) {
+                const data = counterDoc.data();
+                if (data.shortYear === shortYear) {
+                    return data.count || 0;
+                }
+            }
+            
+            // If counter doesn't exist, scan existing registrations
+            try {
+                const snapshot = await mainDb.collection('eventRegistrations')
+                    .where('studentId', '>=', prefix)
+                    .where('studentId', '<=', prefix + '999')
+                    .get();
+                
+                let maxSeq = 0;
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    if (data.studentId) {
+                        const parts = data.studentId.split('-');
+                        if (parts.length === 3) {
+                            const seq = parseInt(parts[2]);
+                            if (!isNaN(seq) && seq > maxSeq) {
+                                maxSeq = seq;
+                            }
+                        }
+                    }
+                });
+                return maxSeq;
+            } catch (error) {
+                console.warn('Could not scan existing registrations:', error);
+                return 0;
+            }
+            
+        } catch (error) {
+            console.error('Error getting max sequence:', error);
+            return Math.floor(Math.random() * 100);
+        }
+    }
+
+    /**
+     * Generate a student ID in the format: DBI-YY-XXX
+     * Uses the counter to get the next sequence
+     */
+    async function generateStudentId() {
+        try {
+            const shortYear = getShortYear();
+            const prefix = `DBI-${shortYear}-`;
+            
+            let currentMax = await getCurrentMaxSequence();
+            const newSeq = currentMax + 1;
+            const formattedNumber = String(newSeq).padStart(3, '0');
+            const newId = `${prefix}${formattedNumber}`;
+            
+            // Update the counter in Firestore
+            if (mainDbInitialized) {
+                try {
+                    const counterRef = mainDb.collection('systemCounters').doc('studentIdCounter');
+                    await counterRef.set({
+                        shortYear: shortYear,
+                        count: newSeq,
+                        year: new Date().getFullYear(),
+                        lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+                    }, { merge: true });
+                    console.log(`✅ Counter updated: ${shortYear}-${newSeq}`);
+                } catch (error) {
+                    console.warn('Could not update counter:', error);
+                }
+            }
+            
+            console.log(`✅ Generated student ID: ${newId} (Sequence: ${newSeq})`);
+            return newId;
+            
+        } catch (error) {
+            console.error('Error generating student ID:', error);
+            // Fallback: generate a random ID
+            const fallbackId = `DBI-${getShortYear()}-${String(Math.floor(Math.random() * 1000)).padStart(3, '0')}`;
+            console.log(`Using fallback ID: ${fallbackId}`);
+            return fallbackId;
+        }
+    }
+
+    function generatePassword() {
+        const random = String(Math.floor(Math.random() * 10000)).padStart(4, '0');
+        return `DBI#${random}`;
+    }
+
+    // ============================================================
+    // CREATE ADMIN
+    // ============================================================
+
+    async function createAdmin(e) {
+        e.preventDefault();
+
+        const email = document.getElementById('adminEmail').value.trim();
+        const password = document.getElementById('adminPassword').value.trim();
+        const name = document.getElementById('adminName').value.trim();
+        const role = document.getElementById('adminRole').value;
+
+        const submitBtn = document.getElementById('adminSubmitBtn');
+        const resultBox = document.getElementById('adminResult');
+
+        if (!email || !password) {
+            showResult(resultBox, 'error', 'Please fill in all required fields.');
+            return;
+        }
+
+        if (password.length < 6) {
+            showResult(resultBox, 'error', 'Password must be at least 6 characters.');
+            return;
+        }
+
+        submitBtn.classList.add('loading');
+        submitBtn.disabled = true;
+        resultBox.className = 'result-box';
+
+        try {
+            const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+            const user = userCredential.user;
+
+            await db.collection('admins').doc(user.uid).set({
+                uid: user.uid,
+                email: user.email,
+                name: name || user.email,
+                role: role || 'Super Admin',
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                createdBy: 'account_creator'
+            });
+
+            showResult(resultBox, 'success', `
+                <div class="result-title">✅ Admin Account Created!</div>
+                <div class="result-details">
+                    <strong>Email:</strong> ${email}<br>
+                    <strong>Password:</strong> <code>${password}</code><br>
+                    <strong>Role:</strong> ${role}<br>
+                    <strong>UID:</strong> <code>${user.uid}</code>
+                </div>
+                <button class="copy-btn" onclick="copyCredentials('${email}', '${password}')">
+                    <i class="fas fa-copy"></i> Copy Credentials
+                </button>
+            `);
+
+            document.getElementById('adminEmail').value = '';
+            document.getElementById('adminPassword').value = '';
+            document.getElementById('adminName').value = '';
+
+            loadAdmins();
+
+        } catch (error) {
+            console.error('Error creating admin:', error);
+            let errorMessage = error.message;
+            if (error.code === 'auth/email-already-in-use') {
+                errorMessage = 'Email already in use. Please use a different email.';
+            }
+            showResult(resultBox, 'error', `❌ Failed to create admin: ${errorMessage}`);
+        } finally {
+            submitBtn.classList.remove('loading');
+            submitBtn.disabled = false;
+        }
+    }
+
+    // ============================================================
+    // CREATE STUDENT - Updated with new ID format
+    // ============================================================
+
+    async function createStudent(e) {
+        e.preventDefault();
+
+        const studentId = document.getElementById('studentId').value.trim();
+        const password = document.getElementById('studentPassword').value.trim();
+        const firstName = document.getElementById('studentFirstName').value.trim();
+        const lastName = document.getElementById('studentLastName').value.trim();
+        const school = document.getElementById('studentSchool').value.trim();
+        const community = document.getElementById('studentCommunity').value.trim();
+        const educationLevel = document.getElementById('studentEducationLevel').value;
+        const phone = document.getElementById('studentPhone').value.trim();
+        const email = document.getElementById('studentEmail').value.trim();
+
+        const submitBtn = document.getElementById('studentSubmitBtn');
+        const resultBox = document.getElementById('studentResult');
+
+        // Validate
+        if (!studentId || !password || !firstName || !lastName) {
+            showResult(resultBox, 'error', 'Please fill in all required fields.');
+            return;
+        }
+
+        // Validate student ID format - NEW FORMAT: DBI-YY-XXX
+        if (!studentId.match(/^DBI-\d{2}-\d{3}$/)) {
+            showResult(resultBox, 'error', 'Student ID must be in format: DBI-YY-XXX (e.g., DBI-26-001)');
+            return;
+        }
+
+        submitBtn.classList.add('loading');
+        submitBtn.disabled = true;
+        resultBox.className = 'result-box';
+
+        try {
+            // Check if student already exists in assessment DB
+            const existingQuery = await db.collection('users')
+                .where('studentId', '==', studentId)
+                .get();
+
+            if (!existingQuery.empty) {
+                showResult(resultBox, 'error', `Student ID ${studentId} already exists.`);
+                submitBtn.classList.remove('loading');
+                submitBtn.disabled = false;
+                return;
+            }
+
+            // Also check in main DB (eventRegistrations) to avoid conflicts
+            if (mainDbInitialized) {
+                const mainQuery = await mainDb.collection('eventRegistrations')
+                    .where('studentId', '==', studentId)
+                    .get();
+                
+                if (!mainQuery.empty) {
+                    showResult(resultBox, 'error', `Student ID ${studentId} already exists in registrations.`);
+                    submitBtn.classList.remove('loading');
+                    submitBtn.disabled = false;
+                    return;
+                }
+            }
+
+            // Save student to Assessment Firestore (users collection)
+            const studentData = {
+                studentId: studentId,
+                password: password,
+                firstName: firstName,
+                lastName: lastName,
+                school: school || 'N/A',
+                community: community || 'N/A',
+                educationLevel: educationLevel,
+                phone: phone || '',
+                email: email || '',
+                shortYear: getShortYear(),
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                status: 'active',
+                createdBy: 'account_creator'
+            };
+
+            await db.collection('users').add(studentData);
+
+            // Also save to Main Firestore (eventRegistrations) for consistency
+            if (mainDbInitialized) {
+                try {
+                    await mainDb.collection('eventRegistrations').add({
+                        studentId: studentId,
+                        password: password,
+                        firstName: firstName,
+                        lastName: lastName,
+                        school: school || 'N/A',
+                        community: community || 'N/A',
+                        educationLevel: educationLevel,
+                        phone: phone || '',
+                        email: email || '',
+                        shortYear: getShortYear(),
+                        registrationDate: firebase.firestore.FieldValue.serverTimestamp(),
+                        status: 'registered',
+                        createdBy: 'account_creator'
+                    });
+                    console.log('✅ Student also saved to Main Firestore');
+                } catch (mainError) {
+                    console.warn('Could not save to Main Firestore:', mainError);
+                }
+            }
+
+            // Success!
+            showResult(resultBox, 'success', `
+                <div class="result-title">✅ Student Account Created!</div>
+                <div class="result-details">
+                    <strong>Student ID:</strong> <code>${studentId}</code><br>
+                    <strong>Password:</strong> <code>${password}</code><br>
+                    <strong>Name:</strong> ${firstName} ${lastName}<br>
+                    <strong>School:</strong> ${school || 'N/A'}<br>
+                    <strong>Community:</strong> ${community || 'N/A'}<br>
+                    <strong>Education Level:</strong> ${educationLevel}
+                </div>
+                <button class="copy-btn" onclick="copyStudentCredentials('${studentId}', '${password}')">
+                    <i class="fas fa-copy"></i> Copy Credentials
+                </button>
+            `);
+
+            // Clear form
+            document.getElementById('studentId').value = '';
+            document.getElementById('studentPassword').value = '';
+            document.getElementById('studentFirstName').value = '';
+            document.getElementById('studentLastName').value = '';
+            document.getElementById('studentSchool').value = '';
+            document.getElementById('studentCommunity').value = '';
+
+        } catch (error) {
+            console.error('Error creating student:', error);
+            showResult(resultBox, 'error', `❌ Failed to create student: ${error.message}`);
+        } finally {
+            submitBtn.classList.remove('loading');
+            submitBtn.disabled = false;
+        }
+    }
+
+    // ============================================================
+    // LOAD ADMINS
+    // ============================================================
+
+    async function loadAdmins() {
+        const container = document.getElementById('adminList');
+
+        try {
+            const snapshot = await db.collection('admins')
+                .orderBy('createdAt', 'desc')
+                .get();
+
+            if (snapshot.empty) {
+                container.innerHTML = `
+                    <div class="empty-state" style="text-align: center; padding: 40px; color: #6b7280;">
+                        <i class="fas fa-users" style="font-size: 32px; display: block; margin-bottom: 12px; color: #d1d5db;"></i>
+                        <p>No admin accounts found.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                html += `
+                    <div class="admin-item">
+                        <div>
+                            <div class="admin-email">${data.email || 'N/A'}</div>
+                            <div class="admin-role">${data.role || 'Admin'} • ${data.name || ''}</div>
+                        </div>
+                        <div class="admin-actions">
+                            <button onclick="deleteAdmin('${doc.id}')" title="Delete admin">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+
+        } catch (error) {
+            console.error('Error loading admins:', error);
+            container.innerHTML = `
+                <div style="text-align: center; padding: 20px; color: #dc2626;">
+                    <i class="fas fa-exclamation-circle"></i> Error loading admins: ${error.message}
+                </div>
+            `;
+        }
+    }
+
+    // ============================================================
+    // DELETE ADMIN
+    // ============================================================
+
+    async function deleteAdmin(adminId) {
+        if (!confirm('Are you sure you want to delete this admin account? This will only remove the admin document from Firestore, not the Firebase Auth user.')) {
+            return;
+        }
+
+        try {
+            await db.collection('admins').doc(adminId).delete();
+            showToast('Admin deleted successfully');
+            loadAdmins();
+        } catch (error) {
+            console.error('Error deleting admin:', error);
+            showToast('Error deleting admin: ' + error.message, true);
+        }
+    }
+
+    // ============================================================
+    // RESULT DISPLAY
+    // ============================================================
+
+    function showResult(element, type, message) {
+        element.className = `result-box ${type}`;
+        element.innerHTML = message;
+    }
+
+    // ============================================================
+    // COPY CREDENTIALS
+    // ============================================================
+
+    function copyCredentials(email, password) {
+        const text = `Email: ${email}\nPassword: ${password}`;
+        navigator.clipboard.writeText(text).then(() => {
+            showToast('Credentials copied to clipboard!');
+        }).catch(() => {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            showToast('Credentials copied to clipboard!');
+        });
+    }
+
+    function copyStudentCredentials(studentId, password) {
+        const text = `Student ID: ${studentId}\nPassword: ${password}`;
+        navigator.clipboard.writeText(text).then(() => {
+            showToast('Credentials copied to clipboard!');
+        }).catch(() => {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            showToast('Credentials copied to clipboard!');
+        });
+    }
+
+    // ============================================================
+    // TOAST
+    // ============================================================
+
+    function showToast(message, isError = false) {
+        let toast = document.querySelector('.toast');
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.style.cssText = `
+                position: fixed;
+                bottom: 24px;
+                right: 24px;
+                background: #1a1f2c;
+                color: white;
+                padding: 16px 24px;
+                border-radius: 12px;
+                font-weight: 500;
+                font-size: 14px;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+                transform: translateY(120%);
+                transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+                z-index: 1000;
+                max-width: 90%;
+                font-family: 'Inter', sans-serif;
+            `;
+            toast.innerHTML = '<i class="fas fa-check-circle"></i> <span id="toastMessage"></span>';
+            document.body.appendChild(toast);
+        }
+
+        const icon = toast.querySelector('i');
+        const messageEl = toast.querySelector('#toastMessage');
+
+        messageEl.textContent = message;
+        toast.className = 'toast';
+
+        if (isError) {
+            toast.style.background = '#dc2626';
+            icon.className = 'fas fa-exclamation-circle';
+        } else {
+            toast.style.background = '#166534';
+            icon.className = 'fas fa-check-circle';
+        }
+
+        toast.style.transform = 'translateY(0)';
+
+        clearTimeout(toast._timeout);
+        toast._timeout = setTimeout(() => {
+            toast.style.transform = 'translateY(120%)';
+        }, 4000);
+    }
+
+    // ============================================================
+    // AUTO-GENERATE FUNCTIONS - Updated with new format
+    // ============================================================
+
+    // Auto-generate student ID on focus (uses the counter system)
+    document.getElementById('studentId').addEventListener('focus', async function() {
+        if (!this.value) {
+            // Show generating state
+            this.placeholder = 'Generating...';
+            this.disabled = true;
+            
+            try {
+                const newId = await generateStudentId();
+                this.value = newId;
+                this.placeholder = 'e.g., DBI-26-001';
+            } catch (error) {
+                console.error('Error generating ID:', error);
+                // Fallback to random
+                const shortYear = getShortYear();
+                const random = String(Math.floor(Math.random() * 1000)).padStart(3, '0');
+                this.value = `DBI-${shortYear}-${random}`;
+            } finally {
+                this.disabled = false;
+                this.placeholder = 'e.g., DBI-26-001';
+            }
+        }
+    });
+
+    // Auto-generate password on focus
+    document.getElementById('studentPassword').addEventListener('focus', function() {
+        if (!this.value) {
+            this.value = generatePassword();
+        }
+    });
+
+    // ============================================================
+    // GET SEQUENCE INFO - Admin Tool
+    // ============================================================
+
+    async function getSequenceInfo() {
+        const maxSeq = await getCurrentMaxSequence();
+        const shortYear = getShortYear();
+        console.log('📊 Current ID Sequence Info:');
+        console.log(`   Year: ${shortYear}`);
+        console.log(`   Max Sequence: ${maxSeq}`);
+        console.log(`   Next Sequence: ${maxSeq + 1}`);
+        console.log(`   Next ID: DBI-${shortYear}-${String(maxSeq + 1).padStart(3, '0')}`);
+        return { year: shortYear, maxSequence: maxSeq, nextSequence: maxSeq + 1 };
+    }
+
+    // ============================================================
+    // INIT
+    // ============================================================
+
+    document.addEventListener('DOMContentLoaded', () => {
+        auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                console.log('User already logged in:', user.email);
+                try {
+                    const adminDoc = await db.collection('admins').doc(user.uid).get();
+                    if (adminDoc.exists) {
+                        console.log('✅ User is admin:', adminDoc.data().role);
+                    }
+                } catch (e) {
+                    console.log('Not an admin user');
+                }
+            }
+        });
+
+        setTimeout(() => {
+            if (document.getElementById('tab-list').classList.contains('active')) {
+                loadAdmins();
+            }
+        }, 500);
+    });
+
+    console.log('%c🔑 DBI Assess Account Creator', 'font-size: 20px; font-weight: bold; color: #166534;');
+    console.log('%c📋 Student ID Format: DBI-YY-XXX (e.g., DBI-26-001)', 'font-size: 14px; color: #22c55e;');
+    console.log('%c⚠️ For Development/Testing Only', 'font-size: 14px; color: #f59e0b;');
+    console.log('%c🛠️ Admin Tool: getSequenceInfo() - View current ID sequence', 'font-size: 14px; color: #3b82f6;');
+</script>
+
+</body>
+</html>

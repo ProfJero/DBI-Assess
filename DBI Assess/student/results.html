@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>My Results - DBI Assess</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/student.css">
+    
+    <style>
+        /* Results page specific styles */
+        .results-summary {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+        
+        .summary-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+            border: 1px solid #e5e7eb;
+        }
+        
+        .summary-card .label {
+            font-size: 13px;
+            color: #6b7280;
+            font-weight: 500;
+            display: block;
+            margin-bottom: 6px;
+        }
+        
+        .summary-card .value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #111827;
+        }
+        
+        .summary-card .value.green { color: #16a34a; }
+        .summary-card .value.blue { color: #2563eb; }
+        .summary-card .value.orange { color: #d97706; }
+        .summary-card .value.purple { color: #7c3aed; }
+        
+        .score-pass { color: #16a34a; }
+        .score-fail { color: #dc2626; }
+        
+        @media (max-width: 768px) {
+            .results-summary {
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .results-summary {
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+            }
+            .summary-card .value {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar Overlay (Mobile) -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+    <!-- ===== SIDEBAR ===== -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+            <div class="brand-icon">
+                <i class="fas fa-graduation-cap"></i>
+            </div>
+            <div>
+                <div class="brand-text">DBI <span>Assess</span></div>
+                <div class="brand-sub">Student Portal</div>
+            </div>
+        </div>
+
+        <nav class="sidebar-menu">
+            <div class="menu-label">Main</div>
+            <a href="dashboard.html" class="menu-item">
+                <i class="fas fa-th-large"></i> Dashboard
+            </a>
+            <a href="assessments.html" class="menu-item">
+                <i class="fas fa-file-alt"></i> My Assessments
+                <span class="badge green" id="assessmentCount">0</span>
+            </a>
+            <a href="results.html" class="menu-item active">
+                <i class="fas fa-chart-bar"></i> My Results
+            </a>
+            <a href="student-certificates.html" class="menu-item">
+                <i class="fas fa-certificate"></i> My Certificates
+                <span class="badge green" id="certificateCount">0</span>
+            </a>
+
+            <div class="menu-label">Account</div>
+            <a href="profile.html" class="menu-item">
+                <i class="fas fa-user"></i> Profile
+            </a>
+            <a href="#" class="menu-item" onclick="handleLogout()">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </nav>
+    </aside>
+
+    <!-- ===== MAIN CONTENT ===== -->
+    <div class="main-content">
+        <!-- Top Header -->
+        <header class="top-header">
+            <div class="header-left">
+                <button class="hamburger" id="hamburgerBtn">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="page-title">
+                    <h1>My Results</h1>
+                    <p>View your assessment results and performance</p>
+                </div>
+            </div>
+            <div class="header-right">
+                <button class="notification-btn">
+                    <i class="fas fa-bell"></i>
+                    <span class="dot"></span>
+                </button>
+                <div class="student-profile">
+                    <div class="avatar" id="studentAvatar">S</div>
+                    <div class="student-info">
+                        <div class="name" id="studentName">Student</div>
+                        <div class="id" id="studentId">DBI-26-001</div>
+                    </div>
+                    <i class="fas fa-chevron-down chevron"></i>
+                </div>
+            </div>
+        </header>
+
+        <!-- Content Area -->
+        <div class="content-area" id="pageContent">
+            <!-- Results will be rendered here by JavaScript -->
+        </div>
+    </div>
+
+    <!-- ===== TOAST ===== -->
+    <div id="toast" class="toast">
+        <i class="fas fa-check-circle"></i>
+        <span id="toastMessage">Success!</span>
+    </div>
+
+    <!-- ============================================================
+    JAVASCRIPT - Page logic
+    ============================================================ -->
+    <script src="js/results.js"></script>
+    
+    <script>
+        // ============================================================
+        // FIREBASE CONFIGURATION
+        // ============================================================
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCdrmMMmZ0xdC2A_GXdAcWnUAa1i6QbjwQ",
+            authDomain: "dbi-assess.firebaseapp.com",
+            projectId: "dbi-assess",
+            storageBucket: "dbi-assess.firebasestorage.app",
+            messagingSenderId: "558455201415",
+            appId: "1:558455201415:web:4a12a7b7c4cff9ecb6a222",
+            measurementId: "G-FE2BPSJ4C5"
+        };
+
+        let db = null;
+        let currentUser = null;
+
+        try {
+            firebase.initializeApp(firebaseConfig);
+            db = firebase.firestore();
+            console.log('✅ Firebase initialized successfully');
+        } catch (error) {
+            console.error('❌ Firebase initialization error:', error);
+        }
+
+        // ============================================================
+        // AUTHENTICATION CHECK
+        // ============================================================
+
+        function checkAuth() {
+            const userData = sessionStorage.getItem('dbi_assess_user');
+            
+            if (userData) {
+                try {
+                    currentUser = JSON.parse(userData);
+                    console.log('👤 Student logged in:', currentUser.studentId);
+                    updateStudentUI();
+                    
+                    // Initialize the Results module
+                    const app = {
+                        db: db,
+                        currentUser: currentUser,
+                        escapeHtml: escapeHtml,
+                        formatDate: formatDate,
+                        showToast: showToast
+                    };
+                    
+                    const container = document.getElementById('pageContent');
+                    Results.render(container, app);
+                    return;
+                } catch (e) {
+                    console.warn('Invalid session data:', e);
+                }
+            }
+
+            console.log('🔐 No student logged in, redirecting...');
+            window.location.href = '../index.html';
+        }
+
+        function updateStudentUI() {
+            if (!currentUser) return;
+            
+            const name = currentUser.firstName || 'Student';
+            document.getElementById('studentAvatar').textContent = name.charAt(0).toUpperCase();
+            document.getElementById('studentName').textContent = name;
+            document.getElementById('studentId').textContent = currentUser.studentId || 'N/A';
+        }
+
+        // ============================================================
+        // HELPER FUNCTIONS
+        // ============================================================
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function formatDate(date) {
+            if (!date) return 'N/A';
+            try {
+                if (date.toDate) {
+                    return date.toDate().toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                }
+                return new Date(date).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            } catch {
+                return 'N/A';
+            }
+        }
+
+        function showToast(message, isError = false) {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toastMessage');
+            
+            toastMessage.textContent = message;
+            toast.className = 'toast';
+            if (isError) {
+                toast.classList.add('error');
+                toast.querySelector('i').className = 'fas fa-exclamation-circle';
+            } else {
+                toast.classList.add('success');
+                toast.querySelector('i').className = 'fas fa-check-circle';
+            }
+            toast.classList.add('show');
+            
+            clearTimeout(toast._timeout);
+            toast._timeout = setTimeout(() => {
+                toast.classList.remove('show');
+            }, 4000);
+        }
+
+        function closeSidebar() {
+            document.getElementById('sidebar').classList.remove('open');
+            document.getElementById('sidebarOverlay').classList.remove('show');
+        }
+
+        function handleLogout() {
+            if (confirm('Are you sure you want to logout?')) {
+                sessionStorage.removeItem('dbi_assess_user');
+                window.location.href = '../index.html';
+            }
+        }
+
+        // ============================================================
+        // EVENT LISTENERS
+        // ============================================================
+
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAuth();
+
+            document.getElementById('hamburgerBtn').addEventListener('click', () => {
+                document.getElementById('sidebar').classList.toggle('open');
+                document.getElementById('sidebarOverlay').classList.toggle('show');
+            });
+
+            document.getElementById('sidebarOverlay').addEventListener('click', closeSidebar);
+
+            window.addEventListener('resize', () => {
+                if (window.innerWidth > 768) {
+                    document.getElementById('sidebar').classList.remove('open');
+                    document.getElementById('sidebarOverlay').classList.remove('show');
+                }
+            });
+        });
+
+        console.log('%c🎓 DBI Assess Student Portal', 'font-size: 20px; font-weight: bold; color: #166534;');
+        console.log('%c📊 My Results', 'font-size: 14px; color: #22c55e;');
+        console.log('%c📈 View your assessment performance', 'font-size: 14px; color: #6b7280;');
+    </script>
+
+</body>
+</html>

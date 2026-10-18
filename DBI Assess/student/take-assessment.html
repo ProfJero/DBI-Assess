@@ -1,0 +1,1550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Take Assessment - DBI Assess</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Code Editor -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/monokai.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/dracula.min.css">
+    
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    
+    <style>
+        /* ============================================================
+           TAKE ASSESSMENT - PROFESSIONAL STUDENT STYLES
+           ============================================================ */
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f0f2f5;
+            min-height: 100vh;
+            overflow-x: hidden;
+            color: #1a1f2c;
+        }
+
+        /* ===== TOP HEADER ===== */
+        .assessment-header {
+            background: white;
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #e5e7eb;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            min-height: 64px;
+            flex-shrink: 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .assessment-header .header-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            min-width: 0;
+        }
+
+        .assessment-header .header-left .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #166534;
+            font-weight: 700;
+            font-size: 16px;
+        }
+
+        .assessment-header .header-left .brand i {
+            font-size: 20px;
+        }
+
+        .assessment-header .header-left .assessment-meta {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.3;
+        }
+
+        .assessment-header .header-left .assessment-meta .title {
+            font-weight: 700;
+            font-size: 15px;
+            color: #1a1f2c;
+        }
+
+        .assessment-header .header-left .assessment-meta .subtitle {
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        .assessment-header .header-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-shrink: 0;
+        }
+
+        .assessment-header .header-right .timer-section {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            border-radius: 30px;
+            background: #f8fafc;
+            border: 1px solid #e5e7eb;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .assessment-header .header-right .timer-section .timer-icon {
+            color: #6b7280;
+        }
+
+        .assessment-header .header-right .timer-section .timer-text {
+            font-variant-numeric: tabular-nums;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        .assessment-header .header-right .timer-section.green {
+            border-color: #86efac;
+            background: #f0fdf4;
+            color: #166534;
+        }
+
+        .assessment-header .header-right .timer-section.orange {
+            border-color: #fdba74;
+            background: #fff7ed;
+            color: #c2410c;
+        }
+
+        .assessment-header .header-right .timer-section.red {
+            border-color: #fca5a5;
+            background: #fef2f2;
+            color: #dc2626;
+            animation: pulse-red 1s ease-in-out infinite;
+        }
+
+        @keyframes pulse-red {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        .assessment-header .header-right .progress-info {
+            font-size: 13px;
+            color: #6b7280;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .assessment-header .header-right .exit-btn {
+            background: none;
+            border: none;
+            color: #6b7280;
+            cursor: pointer;
+            font-size: 18px;
+            padding: 6px;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .assessment-header .header-right .exit-btn:hover {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        /* ===== MAIN CONTENT ===== */
+        .assessment-body {
+            display: grid;
+            grid-template-columns: 1fr 280px;
+            gap: 20px;
+            padding: 20px 24px 40px;
+            max-width: 1400px;
+            margin: 0 auto;
+            min-height: calc(100vh - 64px);
+        }
+
+        /* ===== QUESTION AREA ===== */
+        .question-area {
+            background: white;
+            border-radius: 16px;
+            border: 1px solid #e5e7eb;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .question-area .question-header {
+            padding: 16px 24px;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            background: #fafafa;
+        }
+
+        .question-area .question-header .q-number {
+            font-weight: 700;
+            font-size: 14px;
+            color: #1a1f2c;
+        }
+
+        .question-area .question-header .q-number span {
+            color: #6b7280;
+            font-weight: 400;
+        }
+
+        .question-area .question-header .q-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .question-area .question-header .q-actions button {
+            padding: 6px 14px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .question-area .question-header .q-actions button:hover {
+            background: #f3f4f6;
+        }
+
+        .question-area .question-header .q-actions button.mark-review {
+            border-color: #f59e0b;
+            color: #b45309;
+        }
+
+        .question-area .question-header .q-actions button.mark-review.active {
+            background: #fef3c7;
+            border-color: #d97706;
+        }
+
+        .question-area .question-header .q-actions button.flag-question {
+            border-color: #6b7280;
+            color: #6b7280;
+        }
+
+        .question-area .question-header .q-actions button.flag-question.active {
+            background: #fee2e2;
+            border-color: #dc2626;
+            color: #dc2626;
+        }
+
+        .question-area .question-content {
+            padding: 24px;
+            flex: 1;
+            overflow-y: auto;
+            max-height: 600px;
+        }
+
+        .question-area .question-content .question-text {
+            font-size: 17px;
+            font-weight: 500;
+            color: #1a1f2c;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        /* Options */
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .options-list .option-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 14px 18px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            background: white;
+            position: relative;
+        }
+
+        .options-list .option-item:hover:not(.disabled) {
+            border-color: #a7b3c5;
+            background: #f8fafc;
+            transform: translateX(4px);
+        }
+
+        .options-list .option-item.selected {
+            border-color: #166534;
+            background: #f0fdf4;
+        }
+
+        .options-list .option-item.correct {
+            border-color: #16a34a;
+            background: #dcfce7;
+        }
+
+        .options-list .option-item.wrong {
+            border-color: #dc2626;
+            background: #fee2e2;
+        }
+
+        .options-list .option-item .option-marker {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 2px solid #d1d5db;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 700;
+            color: #6b7280;
+            flex-shrink: 0;
+            transition: all 0.25s ease;
+        }
+
+        .options-list .option-item.selected .option-marker {
+            background: #166534;
+            border-color: #166534;
+            color: white;
+        }
+
+        .options-list .option-item.correct .option-marker {
+            background: #16a34a;
+            border-color: #16a34a;
+            color: white;
+        }
+
+        .options-list .option-item.wrong .option-marker {
+            background: #dc2626;
+            border-color: #dc2626;
+            color: white;
+        }
+
+        .options-list .option-item .option-text {
+            font-size: 15px;
+            color: #1a1f2c;
+            padding-top: 3px;
+            flex: 1;
+        }
+
+        .options-list .option-item .option-status {
+            font-size: 13px;
+            font-weight: 600;
+            padding: 2px 12px;
+            border-radius: 20px;
+        }
+
+        .options-list .option-item .option-status.correct-text {
+            color: #16a34a;
+            background: #dcfce7;
+        }
+
+        .options-list .option-item .option-status.wrong-text {
+            color: #dc2626;
+            background: #fee2e2;
+        }
+
+        /* Feedback Box */
+        .feedback-box {
+            margin-top: 20px;
+            padding: 16px 20px;
+            border-radius: 12px;
+            border-left: 4px solid;
+            animation: slideDown 0.4s ease;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .feedback-box.correct-feedback {
+            background: #f0fdf4;
+            border-color: #16a34a;
+        }
+
+        .feedback-box.incorrect-feedback {
+            background: #fef2f2;
+            border-color: #dc2626;
+        }
+
+        .feedback-box .feedback-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+            font-size: 16px;
+            margin-bottom: 6px;
+        }
+
+        .feedback-box .feedback-header i {
+            font-size: 20px;
+        }
+
+        .feedback-box .feedback-header.correct-color {
+            color: #16a34a;
+        }
+
+        .feedback-box .feedback-header.incorrect-color {
+            color: #dc2626;
+        }
+
+        .feedback-box .feedback-text {
+            color: #4b5563;
+            font-size: 14px;
+            line-height: 1.6;
+            margin-top: 4px;
+        }
+
+        .feedback-box .correct-answer-display {
+            margin-top: 8px;
+            padding: 8px 14px;
+            background: rgba(22, 101, 52, 0.08);
+            border-radius: 8px;
+            color: #166534;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .feedback-box .points-earned {
+            margin-top: 8px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        /* Progress Bar */
+        .progress-bar-container {
+            width: 100%;
+            height: 4px;
+            background: #e5e7eb;
+            border-radius: 2px;
+            margin-bottom: 16px;
+            overflow: hidden;
+        }
+
+        .progress-bar-container .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #166534, #22c55e);
+            border-radius: 2px;
+            transition: width 0.5s ease;
+            width: 0%;
+        }
+
+        /* Question Footer */
+        .question-footer {
+            padding: 16px 24px;
+            border-top: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            background: #fafafa;
+        }
+
+        .question-footer .footer-left {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .question-footer .footer-right {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .question-footer button {
+            padding: 10px 24px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.25s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            min-height: 44px;
+        }
+
+        .question-footer button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .question-footer .btn-prev {
+            background: #f3f4f6;
+            color: #1a1f2c;
+            border: 1px solid #e5e7eb;
+        }
+
+        .question-footer .btn-prev:hover:not(:disabled) {
+            background: #e5e7eb;
+            transform: translateX(-2px);
+        }
+
+        .question-footer .btn-next {
+            background: #166534;
+            color: white;
+        }
+
+        .question-footer .btn-next:hover:not(:disabled) {
+            background: #14532d;
+            transform: translateX(2px);
+            box-shadow: 0 4px 12px rgba(22, 101, 52, 0.25);
+        }
+
+        .question-footer .btn-submit-answer {
+            background: #2563eb;
+            color: white;
+        }
+
+        .question-footer .btn-submit-answer:hover:not(:disabled) {
+            background: #1d4ed8;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+        }
+
+        .question-footer .btn-submit-answer.submitted {
+            background: #16a34a;
+            cursor: default;
+        }
+
+        .question-footer .btn-submit-answer.submitted:hover {
+            transform: none;
+            box-shadow: none;
+        }
+
+        .question-footer .btn-final-submit {
+            background: #dc2626;
+            color: white;
+        }
+
+        .question-footer .btn-final-submit:hover:not(:disabled) {
+            background: #b91c1c;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25);
+        }
+
+        .question-footer .btn-clear {
+            background: #f3f4f6;
+            color: #6b7280;
+            border: 1px solid #e5e7eb;
+        }
+
+        .question-footer .btn-clear:hover:not(:disabled) {
+            background: #fee2e2;
+            color: #dc2626;
+            border-color: #dc2626;
+        }
+
+        /* ===== QUESTION NAVIGATOR ===== */
+        .question-navigator {
+            background: white;
+            border-radius: 16px;
+            border: 1px solid #e5e7eb;
+            padding: 20px;
+            height: fit-content;
+            position: sticky;
+            top: 80px;
+            max-height: calc(100vh - 100px);
+            overflow-y: auto;
+        }
+
+        .question-navigator .nav-title {
+            font-weight: 600;
+            font-size: 14px;
+            color: #1a1f2c;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .question-navigator .nav-title .status-legend {
+            display: flex;
+            gap: 10px;
+            font-size: 10px;
+            font-weight: 400;
+            color: #6b7280;
+            flex-wrap: wrap;
+        }
+
+        .question-navigator .nav-title .status-legend .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .question-navigator .nav-title .status-legend .legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .question-navigator .nav-title .status-legend .legend-dot.current { background: #2563eb; }
+        .question-navigator .nav-title .status-legend .legend-dot.submitted { background: #16a34a; }
+        .question-navigator .nav-title .status-legend .legend-dot.answered { background: #f59e0b; }
+        .question-navigator .nav-title .status-legend .legend-dot.review { background: #d97706; }
+        .question-navigator .nav-title .status-legend .legend-dot.flagged { background: #dc2626; }
+        .question-navigator .nav-title .status-legend .legend-dot.unanswered { background: #d1d5db; }
+
+        .nav-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 6px;
+        }
+
+        .nav-grid .nav-item {
+            padding: 8px 4px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: white;
+            color: #6b7280;
+            position: relative;
+            min-height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .nav-grid .nav-item:hover {
+            border-color: #a7b3c5;
+            transform: scale(1.05);
+        }
+
+        .nav-grid .nav-item.current {
+            border-color: #2563eb;
+            background: #eff6ff;
+            color: #1e40af;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+        }
+
+        .nav-grid .nav-item.submitted {
+            border-color: #16a34a;
+            background: #f0fdf4;
+            color: #166534;
+        }
+
+        .nav-grid .nav-item.answered {
+            border-color: #f59e0b;
+            background: #fef3c7;
+            color: #b45309;
+        }
+
+        .nav-grid .nav-item.review {
+            border-color: #d97706;
+            background: #fffbeb;
+            color: #b45309;
+        }
+
+        .nav-grid .nav-item.flagged {
+            border-color: #dc2626;
+            background: #fef2f2;
+            color: #dc2626;
+        }
+
+        .nav-grid .nav-item.completed {
+            border-color: #16a34a;
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .nav-grid .nav-item .nav-badge {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            font-size: 8px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .nav-grid .nav-item .nav-badge.flag-badge {
+            background: #dc2626;
+        }
+
+        .nav-grid .nav-item .nav-badge.review-badge {
+            background: #d97706;
+        }
+
+        /* Navigator Stats */
+        .nav-stats {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #e5e7eb;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        .nav-stats .stat-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+        }
+
+        .nav-stats .stat-item .stat-value {
+            font-weight: 600;
+            color: #1a1f2c;
+        }
+
+        .nav-stats .stat-item .stat-value.green { color: #16a34a; }
+        .nav-stats .stat-item .stat-value.orange { color: #f59e0b; }
+        .nav-stats .stat-item .stat-value.red { color: #dc2626; }
+        .nav-stats .stat-item .stat-value.blue { color: #2563eb; }
+
+        /* ===== INSTRUCTIONS PAGE ===== */
+        .instructions-page {
+            background: white;
+            border-radius: 16px;
+            border: 1px solid #e5e7eb;
+            padding: 40px;
+            max-width: 800px;
+            margin: 20px auto;
+        }
+
+        .instructions-page .inst-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .instructions-page .inst-header .inst-icon {
+            font-size: 48px;
+            color: #166534;
+            margin-bottom: 12px;
+        }
+
+        .instructions-page .inst-header h2 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1a1f2c;
+        }
+
+        .instructions-page .inst-header p {
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        .instructions-page .inst-section {
+            margin-bottom: 20px;
+            padding: 16px 20px;
+            background: #f8fafc;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .instructions-page .inst-section h4 {
+            font-weight: 600;
+            color: #1a1f2c;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .instructions-page .inst-section ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .instructions-page .inst-section ul li {
+            padding: 4px 0;
+            color: #4b5563;
+            font-size: 14px;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .instructions-page .inst-footer {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .instructions-page .inst-footer .btn-start {
+            background: linear-gradient(135deg, #166534, #22c55e);
+            color: white;
+            border: none;
+            padding: 14px 48px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .instructions-page .inst-footer .btn-start:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(22, 101, 52, 0.3);
+        }
+
+        .instructions-page .inst-footer .btn-start:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .instructions-page .inst-footer .btn-start .spinner {
+            display: none;
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+
+        .instructions-page .inst-footer .btn-start.loading .spinner {
+            display: inline-block;
+        }
+
+        .instructions-page .inst-footer .btn-start.loading .btn-text {
+            display: none;
+        }
+
+        /* ===== LOADING STATE ===== */
+        .loading-state {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 400px;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .loading-state .spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid #e5e7eb;
+            border-top-color: #166534;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* ===== COMPLETION PAGE ===== */
+        .completion-page {
+            background: white;
+            border-radius: 16px;
+            border: 1px solid #e5e7eb;
+            padding: 40px;
+            max-width: 600px;
+            margin: 20px auto;
+            text-align: center;
+        }
+
+        .completion-page .completion-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+        }
+
+        .completion-page .completion-icon.passed {
+            color: #16a34a;
+        }
+
+        .completion-page .completion-icon.failed {
+            color: #dc2626;
+        }
+
+        .completion-page h2 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1a1f2c;
+            margin-bottom: 8px;
+        }
+
+        .completion-page .score-display {
+            font-size: 48px;
+            font-weight: 800;
+            margin: 16px 0;
+        }
+
+        .completion-page .score-display.passed {
+            color: #16a34a;
+        }
+
+        .completion-page .score-display.failed {
+            color: #dc2626;
+        }
+
+        .completion-page .score-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 12px;
+            margin: 20px 0;
+        }
+
+        .completion-page .score-details .detail-item {
+            background: #f8fafc;
+            padding: 12px;
+            border-radius: 10px;
+        }
+
+        .completion-page .score-details .detail-item .detail-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1a1f2c;
+        }
+
+        .completion-page .score-details .detail-item .detail-label {
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        /* ===== MODAL ===== */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            z-index: 1500;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 18px;
+            max-width: 520px;
+            width: 100%;
+            max-height: 90vh;
+            overflow: hidden;
+            animation: modalSlideUp 0.3s ease;
+        }
+
+        @keyframes modalSlideUp {
+            from { opacity: 0; transform: translateY(30px) scale(0.96); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .modal-header {
+            padding: 18px 22px;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+        }
+
+        .modal-header h3 {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1a1f2c;
+        }
+
+        .modal-header .close-modal {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #6b7280;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 8px;
+        }
+
+        .modal-header .close-modal:hover {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .modal-body {
+            padding: 22px;
+            max-height: calc(90vh - 140px);
+            overflow-y: auto;
+        }
+
+        .modal-footer {
+            padding: 16px 22px;
+            border-top: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            background: #fafafa;
+        }
+
+        /* ===== TOAST ===== */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: #1a1f2c;
+            color: white;
+            padding: 14px 22px;
+            border-radius: 12px;
+            font-weight: 500;
+            font-size: 13px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transform: translateY(120%);
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            max-width: 90%;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+        }
+
+        .toast i {
+            font-size: 18px;
+        }
+
+        .toast.success { background: #166534; }
+        .toast.error { background: #dc2626; }
+        .toast.warning { background: #d97706; }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 1024px) {
+            .assessment-body {
+                grid-template-columns: 1fr;
+                padding: 16px;
+            }
+
+            .question-navigator {
+                position: static;
+                max-height: none;
+                order: 2;
+            }
+
+            .nav-grid {
+                grid-template-columns: repeat(8, 1fr);
+            }
+
+            .question-area {
+                order: 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .assessment-header {
+                padding: 10px 16px;
+                min-height: 56px;
+                flex-wrap: wrap;
+            }
+
+            .assessment-header .header-left .brand {
+                font-size: 14px;
+            }
+
+            .assessment-header .header-left .assessment-meta .title {
+                font-size: 13px;
+            }
+
+            .assessment-header .header-left .assessment-meta .subtitle {
+                font-size: 11px;
+            }
+
+            .assessment-header .header-right .timer-section {
+                padding: 4px 10px;
+                font-size: 12px;
+            }
+
+            .assessment-header .header-right .progress-info {
+                font-size: 11px;
+            }
+
+            .assessment-body {
+                padding: 12px;
+                gap: 16px;
+            }
+
+            .question-area .question-header {
+                padding: 12px 16px;
+            }
+
+            .question-area .question-header .q-actions button {
+                padding: 4px 10px;
+                font-size: 12px;
+            }
+
+            .question-area .question-content {
+                padding: 16px;
+                max-height: none;
+            }
+
+            .question-area .question-content .question-text {
+                font-size: 15px;
+            }
+
+            .options-list .option-item {
+                padding: 10px 14px;
+            }
+
+            .options-list .option-item .option-text {
+                font-size: 14px;
+            }
+
+            .nav-grid {
+                grid-template-columns: repeat(6, 1fr);
+            }
+
+            .question-footer {
+                padding: 12px 16px;
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .question-footer .footer-left,
+            .question-footer .footer-right {
+                justify-content: center;
+            }
+
+            .question-footer button {
+                font-size: 12px;
+                padding: 8px 16px;
+                min-height: 38px;
+                flex: 1;
+                justify-content: center;
+            }
+
+            .modal {
+                max-width: 95%;
+                margin: 10px;
+            }
+
+            .instructions-page {
+                padding: 24px 16px;
+                margin: 12px;
+            }
+
+            .instructions-page .inst-header h2 {
+                font-size: 20px;
+            }
+
+            .completion-page {
+                padding: 24px 16px;
+                margin: 12px;
+            }
+
+            .completion-page .score-details {
+                grid-template-columns: 1fr;
+            }
+
+            .completion-page .score-display {
+                font-size: 36px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .assessment-header .header-left .brand {
+                font-size: 12px;
+            }
+
+            .nav-grid {
+                grid-template-columns: repeat(5, 1fr);
+                gap: 4px;
+            }
+
+            .nav-grid .nav-item {
+                font-size: 11px;
+                padding: 6px 2px;
+                min-height: 30px;
+            }
+
+            .options-list .option-item {
+                padding: 8px 12px;
+            }
+
+            .options-list .option-item .option-marker {
+                width: 22px;
+                height: 22px;
+                font-size: 11px;
+            }
+
+            .question-footer button {
+                font-size: 11px;
+                padding: 6px 12px;
+                min-height: 34px;
+            }
+
+            .feedback-box {
+                padding: 12px 16px;
+            }
+
+            .feedback-box .feedback-header {
+                font-size: 14px;
+            }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #c1c7cd;
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a0a8b0;
+        }
+
+        /* Question Header Display */
+.question-header-display {
+    margin-bottom: 24px;
+    padding: 16px 20px;
+    background: #f8fafc;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+}
+
+.question-header-display .question-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 12px;
+    align-items: center;
+}
+
+.question-header-display .question-number-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 14px;
+    background: #166534;
+    color: white;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.question-header-display .question-points-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 12px;
+    background: #fef3c7;
+    color: #d97706;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.question-header-display .question-category-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 12px;
+    background: #dbeafe;
+    color: #1d4ed8;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.question-header-display .question-review-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 12px;
+    background: #fef3c7;
+    color: #b45309;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.question-header-display .question-flag-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 12px;
+    background: #fee2e2;
+    color: #dc2626;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.question-header-display .question-submitted-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 12px;
+    background: #dcfce7;
+    color: #166534;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.question-header-display .question-answered-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 12px;
+    background: #fef3c7;
+    color: #d97706;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.question-header-display .question-text-display {
+    font-size: 17px;
+    font-weight: 500;
+    color: #1a1f2c;
+    line-height: 1.7;
+    padding: 8px 4px;
+    border-top: 1px solid #e5e7eb;
+    padding-top: 12px;
+}
+    </style>
+</head>
+<body>
+
+    <!-- ===== TOP HEADER ===== -->
+    <header class="assessment-header" id="assessmentHeader">
+        <div class="header-left">
+            <div class="brand">
+                <i class="fas fa-graduation-cap"></i>
+                <span>DBI Assess</span>
+            </div>
+            <div class="assessment-meta">
+                <div class="title" id="assessmentTitle">Loading Assessment...</div>
+                <div class="subtitle" id="assessmentSubtitle">Course: Loading...</div>
+            </div>
+        </div>
+        <div class="header-right">
+            <div class="progress-info" id="progressInfo">Question 0 of 0</div>
+            <div class="timer-section green" id="timerSection">
+                <i class="fas fa-clock timer-icon"></i>
+                <span class="timer-text" id="timerDisplay">00:00</span>
+            </div>
+            <button class="exit-btn" onclick="TakeAssessment.confirmExit()" title="Exit Assessment">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- ===== MAIN CONTENT ===== -->
+    <div class="assessment-body" id="assessmentBody">
+        <!-- Content will be rendered by JavaScript -->
+    </div>
+
+    <!-- ===== TOAST ===== -->
+    <div id="toast" class="toast">
+        <i class="fas fa-check-circle"></i>
+        <span id="toastMessage">Success!</span>
+    </div>
+
+    <!-- ===== MODAL ===== -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="modalTitle">Modal</h3>
+                <button class="close-modal" onclick="TakeAssessment.closeModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Dynamic content -->
+            </div>
+            <div class="modal-footer" id="modalFooter">
+                <button class="btn-secondary" onclick="TakeAssessment.closeModal()">Cancel</button>
+                <button class="btn-primary" id="modalConfirmBtn">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================
+    JAVASCRIPT
+    ============================================================ -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/xml/xml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/css/css.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/sql/sql.min.js"></script>
+    
+    <script src="js/take-assessment.js"></script>
+    
+    <script>
+        // ============================================================
+        // FIREBASE CONFIGURATION
+        // ============================================================
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCdrmMMmZ0xdC2A_GXdAcWnUAa1i6QbjwQ",
+            authDomain: "dbi-assess.firebaseapp.com",
+            projectId: "dbi-assess",
+            storageBucket: "dbi-assess.firebasestorage.app",
+            messagingSenderId: "558455201415",
+            appId: "1:558455201415:web:4a12a7b7c4cff9ecb6a222",
+            measurementId: "G-FE2BPSJ4C5"
+        };
+
+        let db = null;
+        let currentUser = null;
+
+        try {
+            firebase.initializeApp(firebaseConfig);
+            db = firebase.firestore();
+            
+            db.enablePersistence({
+                synchronizeTabs: true
+            }).catch(function(err) {
+                console.warn('Firestore persistence error:', err);
+            });
+            
+            console.log('✅ Firebase initialized successfully');
+        } catch (error) {
+            console.error('❌ Firebase initialization error:', error);
+        }
+
+        // ============================================================
+        // AUTHENTICATION CHECK
+        // ============================================================
+
+        function checkAuth() {
+            const userData = sessionStorage.getItem('dbi_assess_user');
+            
+            if (userData) {
+                try {
+                    currentUser = JSON.parse(userData);
+                    console.log('👤 Student logged in:', currentUser.studentId);
+                    return true;
+                } catch (e) {
+                    console.warn('Invalid session data:', e);
+                }
+            }
+
+            console.log('🔐 No student logged in, redirecting...');
+            window.location.href = '../index.html';
+            return false;
+        }
+
+        // ============================================================
+        // GET ASSESSMENT ID FROM URL
+        // ============================================================
+
+        function getAssessmentId() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('id');
+        }
+
+        // ============================================================
+        // INITIALIZE
+        // ============================================================
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (checkAuth()) {
+                const app = {
+                    db: db,
+                    currentUser: currentUser,
+                    assessmentId: getAssessmentId(),
+                    escapeHtml: escapeHtml,
+                    showToast: showToast
+                };
+                
+                const container = document.getElementById('assessmentBody');
+                TakeAssessment.render(container, app);
+            }
+        });
+
+        // ============================================================
+        // GLOBAL HELPER FUNCTIONS
+        // ============================================================
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function showToast(message, isError = false, isWarning = false) {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toastMessage');
+            
+            toastMessage.textContent = message;
+            toast.className = 'toast';
+            
+            if (isError) {
+                toast.classList.add('error');
+                toast.querySelector('i').className = 'fas fa-exclamation-circle';
+            } else if (isWarning) {
+                toast.classList.add('warning');
+                toast.querySelector('i').className = 'fas fa-exclamation-triangle';
+            } else {
+                toast.classList.add('success');
+                toast.querySelector('i').className = 'fas fa-check-circle';
+            }
+            
+            toast.classList.add('show');
+            
+            clearTimeout(toast._timeout);
+            toast._timeout = setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        console.log('%c📝 DBI Assess - Take Assessment', 'font-size: 20px; font-weight: bold; color: #166534;');
+        console.log('%c📚 Focus. Answer. Submit.', 'font-size: 14px; color: #22c55e;');
+    </script>
+
+</body>
+</html>
