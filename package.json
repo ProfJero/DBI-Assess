@@ -1,7 +1,7 @@
 {
   "name": "dbi-assess",
   "private": true,
-  "description": "DBI Assess — assessments for Digital Bridge Initiative. Built by ProfJero Digital Studio.",
+  "description": "DBI Assess \u2014 assessments for Digital Bridge Initiative. Built by ProfJero Digital Studio.",
   "scripts": {
     "test": "node --test tests/*.test.js",
     "test:integration": "node scripts/run-integration.mjs",
@@ -10,5 +10,11 @@
     "worker:deploy": "cd worker && wrangler deploy",
     "deploy:rules": "firebase deploy --only firestore:rules,firestore:indexes --project dbi-assess"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "@playwright/test": "1.56.1",
+    "firebase": "9.22.0",
+    "@fortawesome/fontawesome-free": "6.4.0",
+    "firebase-tools": "14.27.0",
+    "wrangler": "4.151.1"
+  }
 }

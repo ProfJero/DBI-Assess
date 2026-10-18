@@ -78,102 +78,16 @@ const StudentCertificates = {
             
             console.log('📜 Loading certificates for student:', studentId);
             
-            // Method 1: Query using the studentId field (custom ID)
-            let certSnap = await this.db.collection('certificates')
+            // Security rules allow a student to read only their own issued certificates.
+            const certSnap = await this.db.collection('certificates')
                 .where('studentId', '==', studentId)
+                .where('status', '==', 'issued')
                 .get();
-
-            console.log('📜 Method 1 - Certificates found with studentId:', certSnap.size);
-
-            let allCerts = [];
+            const allCerts = [];
             certSnap.forEach(doc => {
                 const data = doc.data();
-                if (data.status !== 'template' && data.isTemplate !== true) {
-                    allCerts.push({ id: doc.id, ...data });
-                }
+                if (data.isTemplate !== true) allCerts.push({ id: doc.id, ...data });
             });
-
-            // Method 2: If no certificates found, try using studentDocId
-            if (allCerts.length === 0) {
-                console.log('🔍 Method 1 found no certificates. Trying studentDocId...');
-                certSnap = await this.db.collection('certificates')
-                    .where('studentDocId', '==', studentId)
-                    .get();
-
-                console.log('📜 Method 2 - Certificates found with studentDocId:', certSnap.size);
-
-                certSnap.forEach(doc => {
-                    const data = doc.data();
-                    if (data.status !== 'template' && data.isTemplate !== true) {
-                        allCerts.push({ id: doc.id, ...data });
-                    }
-                });
-            }
-
-            // Method 3: If still no certificates, try searching by student email
-            if (allCerts.length === 0 && this.currentUser.email) {
-                console.log('🔍 Method 2 found no certificates. Trying student email...');
-                certSnap = await this.db.collection('certificates')
-                    .where('studentEmail', '==', this.currentUser.email)
-                    .get();
-
-                console.log('📜 Method 3 - Certificates found with studentEmail:', certSnap.size);
-
-                certSnap.forEach(doc => {
-                    const data = doc.data();
-                    if (data.status !== 'template' && data.isTemplate !== true) {
-                        allCerts.push({ id: doc.id, ...data });
-                    }
-                });
-            }
-
-            // Method 4: Check if any certificate has the student ID in the document ID
-            if (allCerts.length === 0) {
-                console.log('🔍 Method 3 found no certificates. Checking document IDs...');
-                
-                const allCertSnap = await this.db.collection('certificates')
-                    .get();
-                
-                console.log('📊 Total certificates in database:', allCertSnap.size);
-                
-                allCertSnap.forEach(doc => {
-                    const data = doc.data();
-                    if (doc.id === studentId || doc.id.includes(studentId)) {
-                        console.log('   - Found certificate with matching document ID:', doc.id);
-                        if (data.status !== 'template' && data.isTemplate !== true) {
-                            allCerts.push({ id: doc.id, ...data });
-                        }
-                    }
-                });
-            }
-
-            // Method 5: Last resort - check if studentId is stored in any field
-            if (allCerts.length === 0) {
-                console.log('🔍 Method 4 found no certificates. Checking all fields for student ID...');
-                
-                const allCertSnap = await this.db.collection('certificates')
-                    .get();
-                
-                allCertSnap.forEach(doc => {
-                    const data = doc.data();
-                    const dataString = JSON.stringify(data);
-                    if (dataString.includes(studentId)) {
-                        console.log('   - Found certificate containing student ID in data:', doc.id);
-                        if (data.status !== 'template' && data.isTemplate !== true) {
-                            let isMatch = false;
-                            for (const key in data) {
-                                if (data[key] === studentId) {
-                                    isMatch = true;
-                                    break;
-                                }
-                            }
-                            if (isMatch) {
-                                allCerts.push({ id: doc.id, ...data });
-                            }
-                        }
-                    }
-                });
-            }
 
             this.certificatesData = allCerts;
             console.log('📜 Final certificates loaded:', this.certificatesData.length);
@@ -450,7 +364,7 @@ const StudentCertificates = {
             }
         }
 
-        const verificationUrl = `https://dbi-learn.pages.dev/verify-certificate?id=${cert.certificateId || cert.id}`;
+        const verificationUrl = `${new URL('../verify.html', location.href).href}?id=${encodeURIComponent(cert.certificateId || cert.id)}`;
         const qrContainerId = `qr_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
         
         const statusBadge = isTemplate ? 'template-badge' : (isLocked ? 'pending-badge' : 'issued-badge');
@@ -720,7 +634,7 @@ const StudentCertificates = {
         setTimeout(() => {
             const qrContainer = document.getElementById('modalBody').querySelector('.qr-container');
             if (qrContainer) {
-                const verificationUrl = `https://dbi-learn.pages.dev/verify-certificate?id=${cert.certificateId || cert.id}`;
+                const verificationUrl = `${new URL('../verify.html', location.href).href}?id=${encodeURIComponent(cert.certificateId || cert.id)}`;
                 this.generateQRCode(verificationUrl, qrContainer.id);
             }
         }, 300);

@@ -1,0 +1,15 @@
+{
+  "name": "DBI Assess — Digital Bridge Initiative",
+  "short_name": "DBI Assess",
+  "description": "Tests and quizzes for Digital Bridge Initiative students. Works with weak internet.",
+  "start_url": "student/dashboard.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#03c14b",
+  "icons": [
+    { "src": "images/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "images/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "images/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
