@@ -280,7 +280,7 @@
       wrap.className = 'modal-wrap';
       var id = 'm' + Math.random().toString(36).slice(2);
       wrap.innerHTML =
-        '<div class="modal" role="dialog" aria-modal="true" aria-labelledby="' + id + '">' +
+        '<div class="modal' + (opts.wide ? ' wide' : '') + '" role="dialog" aria-modal="true" aria-labelledby="' + id + '">' +
         '<h2 id="' + id + '">' + DBI.esc(opts.title || '') + '</h2><div class="modal-body"></div><div class="modal-actions"></div></div>';
       var body = wrap.querySelector('.modal-body');
       if (typeof opts.body === 'string') body.innerHTML = opts.body;

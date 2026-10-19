@@ -1,7 +1,47 @@
 {
   "indexes": [
-    { "collectionGroup": "studentResults", "queryScope": "COLLECTION", "fields": [{ "fieldPath": "assessmentId", "order": "ASCENDING" }, { "fieldPath": "submittedAt", "order": "DESCENDING" }] },
-    { "collectionGroup": "questions", "queryScope": "COLLECTION", "fields": [{ "fieldPath": "assessmentId", "order": "ASCENDING" }, { "fieldPath": "order", "order": "ASCENDING" }] }
+    {
+      "collectionGroup": "studentResults",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "assessmentId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "submittedAt",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "questions",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "assessmentId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "order",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "studentResults",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "status",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "submittedAt",
+          "order": "DESCENDING"
+        }
+      ]
+    }
   ],
   "fieldOverrides": []
 }

@@ -1,591 +1,82 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    <title>DBI Assess - Admin Login</title>
-    
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-    
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: linear-gradient(135deg, #0a3d2e 0%, #166534 30%, #15803d 60%, #22c55e 100%);
-            padding: 20px;
-            position: relative;
-            overflow-x: hidden;
-        }
-
-        /* Animated Background */
-        .bg-particles {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            pointer-events: none;
-            z-index: 0;
-            overflow: hidden;
-        }
-
-        .particle {
-            position: absolute;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.05);
-            animation: floatParticle linear infinite;
-        }
-
-        .particle:nth-child(1) { width: 80px; height: 80px; left: 10%; animation-duration: 18s; }
-        .particle:nth-child(2) { width: 120px; height: 120px; right: 15%; animation-duration: 22s; animation-delay: 2s; }
-        .particle:nth-child(3) { width: 60px; height: 60px; left: 30%; animation-duration: 15s; animation-delay: 4s; }
-        .particle:nth-child(4) { width: 100px; height: 100px; right: 30%; animation-duration: 20s; animation-delay: 1s; }
-        .particle:nth-child(5) { width: 50px; height: 50px; left: 60%; animation-duration: 12s; animation-delay: 3s; }
-        .particle:nth-child(6) { width: 90px; height: 90px; right: 5%; animation-duration: 19s; animation-delay: 5s; }
-        .particle:nth-child(7) { width: 40px; height: 40px; left: 80%; animation-duration: 14s; animation-delay: 2.5s; }
-        .particle:nth-child(8) { width: 150px; height: 150px; left: 50%; animation-duration: 25s; animation-delay: 0.5s; opacity: 0.3; }
-
-        @keyframes floatParticle {
-            0% { transform: translateY(0) scale(0.8); opacity: 0.3; }
-            50% { opacity: 0.6; }
-            100% { transform: translateY(-110vh) scale(1.2); opacity: 0; }
-        }
-
-        .login-wrapper {
-            position: relative;
-            z-index: 1;
-            width: 100%;
-            max-width: 420px;
-            animation: slideUp 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-            opacity: 0;
-            transform: translateY(40px);
-        }
-
-        @keyframes slideUp {
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .login-card {
-            background: rgba(255, 255, 255, 0.98);
-            backdrop-filter: blur(20px);
-            border-radius: 24px;
-            padding: 40px 32px 32px;
-            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.3);
-        }
-
-        .login-header {
-            text-align: center;
-            margin-bottom: 32px;
-        }
-
-        .logo-container {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            margin-bottom: 16px;
-        }
-
-        .logo-icon {
-            width: 56px;
-            height: 56px;
-            background: linear-gradient(135deg, #166534, #22c55e);
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 28px;
-            color: white;
-            box-shadow: 0 4px 15px rgba(22, 101, 52, 0.3);
-            animation: pulseLogo 2s ease-in-out infinite;
-        }
-
-        @keyframes pulseLogo {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-
-        .logo-text {
-            font-size: 28px;
-            font-weight: 800;
-            color: #1a1f2c;
-        }
-
-        .logo-text .highlight {
-            background: linear-gradient(135deg, #166534, #22c55e);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .logo-sub {
-            font-size: 13px;
-            color: #6b7280;
-            font-weight: 500;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            margin-top: 2px;
-        }
-
-        .welcome-text {
-            font-size: 20px;
-            font-weight: 700;
-            color: #1a1f2c;
-            margin-bottom: 4px;
-        }
-
-        .welcome-sub {
-            font-size: 14px;
-            color: #6b7280;
-        }
-
-        .form-group {
-            margin-bottom: 18px;
-        }
-
-        .form-group label {
-            display: block;
-            font-size: 14px;
-            font-weight: 600;
-            color: #1a1f2c;
-            margin-bottom: 6px;
-        }
-
-        .input-wrapper {
-            position: relative;
-            display: flex;
-            align-items: center;
-            background: #f3f4f6;
-            border-radius: 12px;
-            transition: all 0.3s ease;
-            border: 2px solid transparent;
-        }
-
-        .input-wrapper:focus-within {
-            border-color: #22c55e;
-            background: #ffffff;
-            box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.1);
-        }
-
-        .input-wrapper .input-icon {
-            flex-shrink: 0;
-            width: 44px;
-            text-align: center;
-            color: #9ca3af;
-            font-size: 16px;
-            transition: color 0.3s ease;
-        }
-
-        .input-wrapper:focus-within .input-icon {
-            color: #166534;
-        }
-
-        .input-wrapper input {
-            width: 100%;
-            padding: 14px 16px 14px 0;
-            border: none;
-            background: transparent;
-            font-size: 15px;
-            font-weight: 500;
-            color: #1a1f2c;
-            outline: none;
-            font-family: 'Inter', sans-serif;
-        }
-
-        .input-wrapper input::placeholder {
-            color: #9ca3af;
-            font-weight: 400;
-        }
-
-        .btn-submit {
-            width: 100%;
-            padding: 16px;
-            background: linear-gradient(135deg, #166534, #22c55e);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: 700;
-            font-family: 'Inter', sans-serif;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-            margin-top: 8px;
-        }
-
-        .btn-submit::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-            transition: left 0.5s ease;
-        }
-
-        .btn-submit:hover::before {
-            left: 100%;
-        }
-
-        .btn-submit:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(22, 101, 52, 0.35);
-        }
-
-        .btn-submit:disabled {
-            opacity: 0.7;
-            cursor: not-allowed;
-            transform: none !important;
-        }
-
-        .btn-submit .spinner {
-            display: none;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            border-top-color: white;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            margin: 0 auto;
-        }
-
-        .btn-submit.loading .spinner {
-            display: inline-block;
-        }
-
-        .btn-submit.loading .btn-text {
-            display: none;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .error-message {
-            display: none;
-            padding: 12px 16px;
-            background: #fef2f2;
-            border: 1px solid #fecaca;
-            border-radius: 10px;
-            color: #dc2626;
-            font-size: 13px;
-            font-weight: 500;
-            margin-bottom: 16px;
-            animation: shake 0.5s ease;
-        }
-
-        .error-message.show {
-            display: block;
-        }
-
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            20% { transform: translateX(-10px); }
-            40% { transform: translateX(10px); }
-            60% { transform: translateX(-6px); }
-            80% { transform: translateX(6px); }
-        }
-
-        .login-footer {
-            text-align: center;
-            margin-top: 24px;
-            padding-top: 20px;
-            border-top: 1px solid #e5e7eb;
-        }
-
-        .login-footer p {
-            font-size: 13px;
-            color: #6b7280;
-        }
-
-        .login-footer .version {
-            font-size: 11px;
-            color: #9ca3af;
-            margin-top: 4px;
-        }
-
-        .toast {
-            position: fixed;
-            bottom: 24px;
-            right: 24px;
-            background: #1a1f2c;
-            color: white;
-            padding: 16px 24px;
-            border-radius: 12px;
-            font-weight: 500;
-            font-size: 14px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            transform: translateY(120%);
-            transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-            z-index: 1000;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            max-width: 90%;
-        }
-
-        .toast.show {
-            transform: translateY(0);
-        }
-
-        .toast.error {
-            background: #dc2626;
-        }
-
-        @media (max-width: 480px) {
-            .login-card {
-                padding: 28px 20px 24px;
-            }
-            .logo-icon {
-                width: 44px;
-                height: 44px;
-                font-size: 22px;
-            }
-            .logo-text {
-                font-size: 22px;
-            }
-            .welcome-text {
-                font-size: 18px;
-            }
-            .input-wrapper input {
-                font-size: 14px;
-                padding: 12px 12px 12px 0;
-            }
-            .input-wrapper .input-icon {
-                width: 36px;
-                font-size: 14px;
-            }
-            .btn-submit {
-                padding: 14px;
-                font-size: 15px;
-            }
-        }
-    </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Staff sign in — DBI Assess</title>
+  <meta name="robots" content="noindex">
+  <link rel="icon" href="../images/icon-192.png">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../shared/ui.css">
 </head>
 <body>
-
-    <div class="bg-particles">
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
+  <main class="auth-page">
+    <div>
+      <div class="auth-card">
+        <div class="logo"><img src="../images/DBI-Official-Logo.png" alt="Digital Bridge Initiative" style="max-width:220px;height:auto"><h1 style="margin-top:12px">Staff sign in</h1><p class="muted">DBI Assess administration</p></div>
+        <div id="msg" role="alert"></div>
+        <form id="form" method="post" action="javascript:void(0)" onsubmit="return false" novalidate>
+          <label class="field"><span>Email</span><input class="input" id="email" type="email" autocomplete="username" required></label>
+          <label class="field"><span>Password</span><input class="input" id="pw" type="password" autocomplete="current-password" required></label>
+          <button class="btn primary block" id="go" type="submit">Sign in</button>
+        </form>
+        <p style="text-align:center;margin-top:14px" class="small"><a href="#" id="forgot">Forgot password?</a> · <a href="../index.html">Student sign in</a></p>
+      </div>
+      <p class="credit">Built by <b>ProfJero Digital Studio</b> · Powered by <b>Digital Bridge Initiative</b></p>
     </div>
-
-    <div class="login-wrapper">
-        <div class="login-card">
-            <div class="login-header">
-                <div class="logo-container">
-                    <div class="logo-icon">
-                        <i class="fas fa-shield-alt"></i>
-                    </div>
-                    <div>
-                        <div class="logo-text">DBI <span class="highlight">Admin</span></div>
-                        <div class="logo-sub">Assessment Platform</div>
-                    </div>
-                </div>
-                <div class="welcome-text">Welcome Back! 👋</div>
-                <div class="welcome-sub">Enter your credentials to access the admin panel</div>
-            </div>
-
-            <div id="errorMessage" class="error-message">
-                <i class="fas fa-exclamation-circle"></i>
-                <span id="errorText">Invalid credentials. Please try again.</span>
-            </div>
-
-            <form id="loginForm">
-                <div class="form-group">
-                    <label for="email">Email Address</label>
-                    <div class="input-wrapper">
-                        <span class="input-icon"><i class="fas fa-envelope"></i></span>
-                        <input type="email" id="email" placeholder="admin@dbi.org" autocomplete="email" required>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="password">Password</label>
-                    <div class="input-wrapper">
-                        <span class="input-icon"><i class="fas fa-lock"></i></span>
-                        <input type="password" id="password" placeholder="Enter your password" autocomplete="current-password" required>
-                    </div>
-                </div>
-
-                <button type="submit" class="btn-submit" id="loginBtn">
-                    <span class="btn-text">Sign In</span>
-                    <span class="spinner"></span>
-                </button>
-            </form>
-
-            <div class="login-footer">
-                <p>Secure Admin Access</p>
-                <div class="version">v1.0.0</div>
-            </div>
-        </div>
-    </div>
-
-    <div id="toast" class="toast">
-        <i class="fas fa-check-circle"></i>
-        <span id="toastMessage">Success!</span>
-    </div>
-
-    <script>
-        // ============================================================
-        // FIREBASE CONFIG
-        // ============================================================
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyCdrmMMmZ0xdC2A_GXdAcWnUAa1i6QbjwQ",
-            authDomain: "dbi-assess.firebaseapp.com",
-            projectId: "dbi-assess",
-            storageBucket: "dbi-assess.firebasestorage.app",
-            messagingSenderId: "558455201415",
-            appId: "1:558455201415:web:4a12a7b7c4cff9ecb6a222",
-            measurementId: "G-FE2BPSJ4C5"
-        };
-
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
-
-        // ============================================================
-        // DOM ELEMENTS
-        // ============================================================
-
-        const form = document.getElementById('loginForm');
-        const emailInput = document.getElementById('email');
-        const passwordInput = document.getElementById('password');
-        const loginBtn = document.getElementById('loginBtn');
-        const errorMessage = document.getElementById('errorMessage');
-        const errorText = document.getElementById('errorText');
-        const toast = document.getElementById('toast');
-        const toastMessage = document.getElementById('toastMessage');
-
-        // ============================================================
-        // TOAST
-        // ============================================================
-
-        function showToast(message, isError = false) {
-            toastMessage.textContent = message;
-            toast.className = 'toast';
-            if (isError) {
-                toast.classList.add('error');
-                toast.querySelector('i').className = 'fas fa-exclamation-circle';
-            } else {
-                toast.querySelector('i').className = 'fas fa-check-circle';
-            }
-            toast.classList.add('show');
-            clearTimeout(toast._timeout);
-            toast._timeout = setTimeout(() => toast.classList.remove('show'), 4000);
+  </main>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="../shared/config.js"></script>
+  <script src="../shared/core.js"></script>
+  <script>
+    (async function () {
+      var msg = document.getElementById('msg');
+      var go = document.getElementById('go');
+      var next = new URLSearchParams(location.search).get('next');
+      var target = next && /^\/[^/]/.test(next) && /\/admin\/|\/account\.html/.test(next) ? next : 'dashboard.html';
+      function show(text, kind) {
+        msg.innerHTML = text ? '<div class="alert ' + (kind || 'error') + '" style="margin-bottom:14px"><span>' + DBI.esc(text) + '</span></div>' : '';
+      }
+      async function isAdmin(user) {
+        var snap = await DBI.db.collection('admins').doc(user.uid).get();
+        return snap.exists;
+      }
+      document.getElementById('form').addEventListener('submit', async function () {
+        show('');
+        var email = document.getElementById('email').value.trim();
+        var pw = document.getElementById('pw').value;
+        if (!email || !pw) return show('Enter your email and password.');
+        DBI.busy(go, true, 'Signing in…');
+        try {
+          await DBI.auth.setPersistence(firebase.auth.Auth.Persistence.SESSION);
+          var cred = await DBI.auth.signInWithEmailAndPassword(email, pw);
+          if (!(await isAdmin(cred.user))) {
+            await DBI.auth.signOut();
+            throw new Error('This account is not a DBI Assess administrator.');
+          }
+          location.replace(target);
+        } catch (e) {
+          var code = e.code || '';
+          show(/wrong-password|user-not-found|invalid-credential|invalid-login/.test(code) ? 'Email or password is incorrect.' : /too-many-requests/.test(code) ? 'Too many attempts. Wait a few minutes or reset your password.' : e.message);
+          DBI.busy(go, false);
         }
-
-        // ============================================================
-        // ERROR
-        // ============================================================
-
-        function showError(message) {
-            errorText.textContent = message;
-            errorMessage.classList.add('show');
-            clearTimeout(errorMessage._timeout);
-            errorMessage._timeout = setTimeout(() => errorMessage.classList.remove('show'), 5000);
+      });
+      document.getElementById('forgot').onclick = async function (e) {
+        e.preventDefault();
+        var email = document.getElementById('email').value.trim();
+        if (!email) return show('Type your email above first, then tap "Forgot password?".', 'warn');
+        try {
+          await DBI.auth.sendPasswordResetEmail(email);
+          show('If that email belongs to an admin, a reset link is on its way.', 'ok');
+        } catch (err) {
+          show(err.message);
         }
-
-        function hideError() {
-            errorMessage.classList.remove('show');
-        }
-
-        // ============================================================
-        // LOGIN
-        // ============================================================
-
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            hideError();
-
-            const email = emailInput.value.trim();
-            const password = passwordInput.value.trim();
-
-            if (!email || !password) {
-                showError('Please fill in all fields.');
-                return;
-            }
-
-            loginBtn.classList.add('loading');
-            loginBtn.disabled = true;
-
-            try {
-                const userCredential = await auth.signInWithEmailAndPassword(email, password);
-                const user = userCredential.user;
-
-                // Check if user is admin
-                const adminDoc = await db.collection('admins').doc(user.uid).get();
-                
-                if (!adminDoc.exists) {
-                    await auth.signOut();
-                    showError('You are not authorized to access the admin panel.');
-                    loginBtn.classList.remove('loading');
-                    loginBtn.disabled = false;
-                    return;
-                }
-
-                // Store admin data
-                sessionStorage.setItem('dbi_admin_user', JSON.stringify({
-                    uid: user.uid,
-                    email: user.email,
-                    ...adminDoc.data()
-                }));
-
-                showToast('Welcome back, Admin! 🎉');
-                
-                setTimeout(() => {
-                    window.location.href = 'dashboard.html';
-                }, 1000);
-
-            } catch (error) {
-                console.error('Login error:', error);
-                if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
-                    showError('Invalid email or password. Please try again.');
-                } else if (error.code === 'auth/too-many-requests') {
-                    showError('Too many failed attempts. Please try again later.');
-                } else {
-                    showError(error.message || 'Login failed. Please try again.');
-                }
-                loginBtn.classList.remove('loading');
-                loginBtn.disabled = false;
-            }
-        });
-
-        // ============================================================
-        // KEYBOARD SHORTCUTS
-        // ============================================================
-
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') hideError();
-        });
-
-        console.log('%c🔐 DBI Assess Admin Login', 'font-size: 20px; font-weight: bold; color: #166534;');
-        console.log('%cSecure Admin Access Only', 'font-size: 14px; color: #22c55e;');
-    </script>
-
+      };
+      var user = await DBI.currentUser();
+      if (user && !user.isAnonymous && user.email && (await isAdmin(user).catch(function () { return false; }))) location.replace(target);
+    })();
+  </script>
 </body>
 </html>
