@@ -213,3 +213,5 @@ ul.list li > a:hover b { color: var(--blue-600); }
 .spin { display: inline-block; width: 16px; height: 16px; border: 2.5px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spin .7s linear infinite; vertical-align: -3px; }
 label.field .hint { display: block; }
 details > summary { padding: 6px 0; }
+[hidden] { display: none !important; }
+@media (max-width: 520px) { body.admin .who-text { display: none; } }

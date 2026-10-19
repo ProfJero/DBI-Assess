@@ -315,6 +315,9 @@
             return '<li><time>' + esc(new Date(ms(e.at)).toLocaleTimeString('en-GB')) + '</time><span>' + esc(LABELS[e.type] || e.type) + (qi !== -1 ? ' · Q' + (qi + 1) : '') + (e.detail ? ' <span class="muted">' + esc(e.detail) + '</span>' : '') + '</span></li>';
           }).join('') + '</ul></details>' : '') + '<p class="hint">Phones lose focus for calls and notifications. Look at how long and how often before deciding.</p></div>';
 
+        // Show questions in the assessment's order (each student saw their own shuffled order).
+        var order = questions.map(function (q) { return q.id; });
+        (data.questions || []).sort(function (x, y) { return order.indexOf(x.question.id) - order.indexOf(y.question.id); });
         var items = (data.questions || []).map(function (row, i) {
           var q = row.question, k = row.key || {};
           var item = (a.grading && a.grading.items && a.grading.items[q.id]) || (a.status === 'in-progress' ? null : { status: 'unanswered', score: 0, max: q.points });
@@ -477,7 +480,7 @@
                 failed++;
               }
             }
-            DBI.toast(failed ? failed + ' could not be saved. Try again.' : 'Saved ' + jobs.length + ' marks', failed ? 'error' : 'ok');
+            DBI.toast(failed ? failed + ' could not be saved. Try again.' : 'Saved ' + jobs.length + ' mark' + (jobs.length === 1 ? '' : 's'), failed ? 'error' : 'ok');
             await load();
           };
         });

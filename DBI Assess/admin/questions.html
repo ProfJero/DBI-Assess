@@ -283,7 +283,8 @@
           if (expl) k.explanation = expl;
           var $ = function (s) { return area.querySelector(s); };
           var $$ = function (s) { return Array.prototype.slice.call(area.querySelectorAll(s)); };
-          switch (out.type) {
+          // Read the fields that are on screen, which belong to the last rendered type.
+          switch (area.dataset.type || out.type) {
             case 'multiple-choice':
             case 'multiple-select':
               out.options = $$('.opt-row').map(function (row) { return { id: row.dataset.id, text: row.querySelector('.input').value.trim() }; }).filter(function (o) { return o.text; });
@@ -396,7 +397,7 @@
               '<label class="field full" id="k_accwrap"><span>Accepted answers / keywords (one per line)</span><textarea class="input" id="k_acc" rows="3">' + esc((key.accepted || []).join('\n')) + '</textarea></label>' +
               '<label class="field" id="k_minwrap"><span>Keywords needed</span><input class="input" type="number" min="1" id="k_minkw" value="' + esc(key.minKeywords || '') + '" placeholder="All"></label>' +
               '<label class="field"><span>Word limit (0 = none)</span><input class="input" type="number" min="0" id="k_words" value="' + esc(q.maxWords || 0) + '"></label></div>' +
-              '<div id="k_autoopts">' + check('k_case', 'Capital letters must match', key.caseSensitive) + check('k_fuzzy', 'Accept small spelling mistakes', key.fuzzy) + check('k_review', 'Send answers that don’t match to a teacher instead of marking them wrong', key.reviewIfWrong !== false && mode !== 'manual') + '</div>';
+              '<div id="k_autoopts">' + check('k_case', 'Capital letters must match', key.caseSensitive) + check('k_fuzzy', 'Accept small spelling mistakes', key.fuzzy) + check('k_review', 'Send answers that don’t match to a teacher instead of marking them wrong', key.reviewIfWrong !== false) + '</div>';
           } else if (t === 'numeric') {
             var range = key.min !== undefined || key.max !== undefined;
             h = check('k_range', 'Accept any number in a range', range) +
@@ -434,6 +435,7 @@
               '<label class="field"><span>Marking guide</span><textarea class="input" id="k_rubric" rows="2">' + esc(key.rubric || '') + '</textarea></label><p class="hint">Files are stored on Cloudinary. Students on slow networks can keep answering while the file uploads.</p>';
           }
           area.innerHTML = h;
+          area.dataset.type = t;
           wireType(t);
           tryIt();
         }

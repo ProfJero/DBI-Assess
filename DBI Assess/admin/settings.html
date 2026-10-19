@@ -1,937 +1,165 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    <title>Settings - DBI Assess Admin</title>
-    
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: {
-                            50: '#eff6ff',
-                            100: '#dbeafe',
-                            200: '#bfdbfe',
-                            300: '#93c5fd',
-                            400: '#60a5fa',
-                            500: '#3b82f6',
-                            600: '#2563eb',
-                            700: '#1d4ed8',
-                            800: '#1e40af',
-                            900: '#1e3a8a',
-                        },
-                        sidebar: '#1a1f2c',
-                        success: '#10b981',
-                        warning: '#f59e0b',
-                        danger: '#ef4444',
-                        info: '#06b6d4',
-                    },
-                    fontFamily: {
-                        'inter': ['Inter', 'system-ui', 'sans-serif'],
-                    },
-                    animation: {
-                        'fade-in': 'fadeIn 0.3s ease-out',
-                        'slide-up': 'slideUp 0.3s ease-out',
-                    },
-                    boxShadow: {
-                        'soft': '0 2px 15px -3px rgba(0,0,0,0.07), 0 10px 20px -2px rgba(0,0,0,0.04)',
-                        'strong': '0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)',
-                    }
-                }
-            }
-        }
-    </script>
-    
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"/>
-    
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    
-    <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-    
-    <style>
-        /* ============================================================
-           DBI ASSESS ADMIN - SETTINGS STYLES
-           ============================================================ */
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background: #f0f2f5;
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-
-        /* ===== SIDEBAR ===== */
-        .sidebar {
-            width: 260px;
-            background: #1a1f2c;
-            color: white;
-            min-height: 100vh;
-            position: fixed;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            overflow-y: auto;
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            z-index: 1000;
-            padding-bottom: 20px;
-        }
-
-        .sidebar::-webkit-scrollbar {
-            width: 4px;
-        }
-        .sidebar::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        .sidebar::-webkit-scrollbar-thumb {
-            background: #374151;
-            border-radius: 2px;
-        }
-
-        .sidebar-brand {
-            padding: 20px 20px 16px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            position: sticky;
-            top: 0;
-            background: #1a1f2c;
-            z-index: 2;
-        }
-
-        .sidebar-brand .brand-icon {
-            width: 40px;
-            height: 40px;
-            background: linear-gradient(135deg, #166534, #22c55e);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            flex-shrink: 0;
-        }
-
-        .sidebar-brand .brand-text {
-            font-size: 18px;
-            font-weight: 700;
-            line-height: 1.2;
-        }
-        .sidebar-brand .brand-text span {
-            color: #22c55e;
-        }
-        .sidebar-brand .brand-sub {
-            font-size: 9px;
-            color: #6b7280;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            margin-top: 1px;
-        }
-
-        .sidebar-menu {
-            padding: 12px 10px;
-        }
-
-        .sidebar-menu .menu-label {
-            font-size: 10px;
-            text-transform: uppercase;
-            color: #6b7280;
-            letter-spacing: 1.2px;
-            padding: 12px 12px 6px;
-            font-weight: 600;
-        }
-
-        .sidebar-menu .menu-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 10px 14px;
-            border-radius: 10px;
-            color: #9ca3af;
-            transition: all 0.25s ease;
-            cursor: pointer;
-            margin-bottom: 2px;
-            font-family: 'Inter', sans-serif;
-            font-size: 14px;
-            background: none;
-            border: none;
-            width: 100%;
-            text-align: left;
-        }
-
-        .sidebar-menu .menu-item:hover {
-            background: rgba(255, 255, 255, 0.06);
-            color: white;
-        }
-
-        .sidebar-menu .menu-item.active {
-            background: linear-gradient(135deg, #166534, #15803d);
-            color: white;
-            box-shadow: 0 4px 15px rgba(22, 101, 52, 0.3);
-        }
-
-        .sidebar-menu .menu-item i {
-            width: 20px;
-            text-align: center;
-            font-size: 16px;
-            flex-shrink: 0;
-        }
-
-        .sidebar-menu .menu-item .badge {
-            margin-left: auto;
-            background: #dc2626;
-            color: white;
-            font-size: 10px;
-            padding: 1px 8px;
-            border-radius: 12px;
-            font-weight: 600;
-        }
-        .sidebar-menu .menu-item .badge.green {
-            background: #22c55e;
-        }
-
-        /* ===== MAIN CONTENT ===== */
-        .main-content {
-            flex: 1;
-            margin-left: 260px;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        /* ===== TOP HEADER ===== */
-        .top-header {
-            background: white;
-            padding: 12px 24px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #e5e7eb;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            min-height: 64px;
-            flex-shrink: 0;
-        }
-
-        .top-header .header-left {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            min-width: 0;
-        }
-
-        .top-header .header-left .hamburger {
-            display: none;
-            background: none;
-            border: none;
-            font-size: 22px;
-            color: #1a1f2c;
-            cursor: pointer;
-            padding: 4px;
-            flex-shrink: 0;
-        }
-
-        .top-header .header-left .page-title h1 {
-            font-size: 18px;
-            font-weight: 700;
-            color: #1a1f2c;
-        }
-
-        .top-header .header-left .page-title p {
-            font-size: 12px;
-            color: #6b7280;
-        }
-
-        .top-header .header-right {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            flex-shrink: 0;
-        }
-
-        .top-header .header-right .admin-profile {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-            padding: 4px 12px 4px 4px;
-            border-radius: 30px;
-            transition: background 0.2s ease;
-        }
-
-        .top-header .header-right .admin-profile:hover {
-            background: #f3f4f6;
-        }
-
-        .top-header .header-right .admin-profile .avatar {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #166534, #22c55e);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 700;
-            font-size: 13px;
-            flex-shrink: 0;
-        }
-
-        .top-header .header-right .admin-profile .admin-info .name {
-            font-weight: 600;
-            color: #1a1f2c;
-            font-size: 13px;
-        }
-
-        .top-header .header-right .admin-profile .admin-info .role {
-            color: #6b7280;
-            font-size: 11px;
-        }
-
-        /* ===== CONTENT AREA ===== */
-        .content-area {
-            padding: 20px 24px 40px;
-            flex: 1;
-        }
-
-        /* ===== SETTINGS LAYOUT ===== */
-        .settings-layout {
-            display: flex;
-            gap: 24px;
-            align-items: flex-start;
-        }
-
-        .settings-sidebar {
-            width: 240px;
-            flex-shrink: 0;
-            position: sticky;
-            top: 24px;
-        }
-
-        .settings-sidebar .settings-nav {
-            background: white;
-            border-radius: 12px;
-            border: 1px solid #e5e7eb;
-            overflow: hidden;
-        }
-
-        .settings-sidebar .settings-nav button {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 16px;
-            width: 100%;
-            border: none;
-            background: transparent;
-            color: #4b5563;
-            font-family: 'Inter', sans-serif;
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            border-left: 3px solid transparent;
-            text-align: left;
-        }
-
-        .settings-sidebar .settings-nav button:hover {
-            background: #f8fafc;
-            color: #1a1f2c;
-        }
-
-        .settings-sidebar .settings-nav button.active {
-            background: #eff6ff;
-            color: #1d4ed8;
-            border-left-color: #3b82f6;
-        }
-
-        .settings-sidebar .settings-nav button i {
-            width: 20px;
-            text-align: center;
-            font-size: 16px;
-        }
-
-        .settings-content {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .settings-panel {
-            display: none;
-            animation: fadeIn 0.3s ease;
-        }
-        .settings-panel.active {
-            display: block;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* ===== SETTINGS CARDS ===== */
-        .settings-card {
-            background: white;
-            border-radius: 12px;
-            border: 1px solid #e5e7eb;
-            padding: 24px;
-            margin-bottom: 20px;
-        }
-
-        .settings-card .card-title {
-            font-size: 18px;
-            font-weight: 700;
-            color: #1a1f2c;
-            margin-bottom: 4px;
-        }
-
-        .settings-card .card-subtitle {
-            font-size: 14px;
-            color: #6b7280;
-            margin-bottom: 20px;
-        }
-
-        .settings-card .form-group {
-            margin-bottom: 18px;
-        }
-        .settings-card .form-group label {
-            display: block;
-            font-size: 13px;
-            font-weight: 600;
-            color: #1a1f2c;
-            margin-bottom: 5px;
-        }
-        .settings-card .form-group label .required {
-            color: #dc2626;
-        }
-        .settings-card .form-group input,
-        .settings-card .form-group select,
-        .settings-card .form-group textarea {
-            width: 100%;
-            padding: 10px 14px;
-            border: 1px solid #e5e7eb;
-            border-radius: 10px;
-            font-size: 14px;
-            font-family: 'Inter', sans-serif;
-            transition: all 0.3s ease;
-            background: #f8fafc;
-        }
-        .settings-card .form-group input:focus,
-        .settings-card .form-group select:focus,
-        .settings-card .form-group textarea:focus {
-            border-color: #22c55e;
-            outline: none;
-            background: white;
-            box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1);
-        }
-
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-        }
-
-        .checkbox-group {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            padding: 4px 0;
-        }
-        .checkbox-group label {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-weight: 400;
-            font-size: 13px;
-            cursor: pointer;
-            padding: 4px 0;
-        }
-        .checkbox-group input[type="checkbox"] {
-            width: 16px;
-            height: 16px;
-            accent-color: #166534;
-            flex-shrink: 0;
-        }
-
-        .help-text {
-            font-size: 12px;
-            color: #6b7280;
-            margin-top: 4px;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-        .help-text i {
-            color: #9ca3af;
-            font-size: 12px;
-        }
-
-        /* ===== BUTTONS ===== */
-        .btn-primary {
-            background: linear-gradient(135deg, #166534, #22c55e);
-            color: white;
-            border: none;
-            padding: 8px 18px;
-            border-radius: 10px;
-            font-weight: 600;
-            font-size: 13px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            font-family: 'Inter', sans-serif;
-            white-space: nowrap;
-        }
-        .btn-primary:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 15px rgba(22, 101, 52, 0.3);
-        }
-
-        .btn-secondary {
-            background: #f3f4f6;
-            color: #1a1f2c;
-            border: 1px solid #e5e7eb;
-            padding: 8px 18px;
-            border-radius: 10px;
-            font-weight: 600;
-            font-size: 13px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            font-family: 'Inter', sans-serif;
-            white-space: nowrap;
-        }
-        .btn-secondary:hover {
-            background: #e5e7eb;
-        }
-
-        .btn-danger {
-            background: #dc2626;
-            color: white;
-            border: none;
-            padding: 8px 18px;
-            border-radius: 10px;
-            font-weight: 600;
-            font-size: 13px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            font-family: 'Inter', sans-serif;
-            white-space: nowrap;
-        }
-        .btn-danger:hover {
-            background: #b91c1c;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 15px rgba(220, 38, 38, 0.3);
-        }
-
-        /* ===== TOAST ===== */
-        .toast {
-            position: fixed;
-            bottom: 24px;
-            right: 24px;
-            background: #1a1f2c;
-            color: white;
-            padding: 14px 22px;
-            border-radius: 12px;
-            font-weight: 500;
-            font-size: 13px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            transform: translateY(120%);
-            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-            z-index: 2000;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            max-width: 90%;
-        }
-        .toast.show {
-            transform: translateY(0);
-        }
-        .toast i {
-            font-size: 18px;
-        }
-        .toast.success { background: #166534; }
-        .toast.error { background: #dc2626; }
-
-        /* Sidebar overlay */
-        .sidebar-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.4);
-            z-index: 999;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-        .sidebar-overlay.show {
-            display: block;
-            opacity: 1;
-        }
-
-        /* Responsive */
-        @media (max-width: 1024px) {
-            .settings-layout {
-                flex-direction: column;
-            }
-            .settings-sidebar {
-                width: 100%;
-                position: relative;
-                top: 0;
-            }
-            .settings-sidebar .settings-nav {
-                display: flex;
-                flex-wrap: wrap;
-                overflow-x: auto;
-                gap: 2px;
-                padding: 8px;
-            }
-            .settings-sidebar .settings-nav button {
-                flex: 1;
-                min-width: 100px;
-                justify-content: center;
-                border-left: none;
-                border-bottom: 3px solid transparent;
-                padding: 10px 14px;
-                border-radius: 8px;
-            }
-            .settings-sidebar .settings-nav button.active {
-                border-left-color: transparent;
-                border-bottom-color: #3b82f6;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .sidebar {
-                transform: translateX(-100%);
-                width: 280px;
-            }
-            .sidebar.open {
-                transform: translateX(0);
-                box-shadow: 0 0 40px rgba(0,0,0,0.3);
-            }
-            .sidebar-overlay.show {
-                display: block;
-            }
-            .main-content {
-                margin-left: 0;
-            }
-            .top-header {
-                padding: 10px 16px;
-                min-height: 56px;
-            }
-            .top-header .header-left .hamburger {
-                display: block;
-            }
-            .top-header .header-left .page-title h1 {
-                font-size: 16px;
-            }
-            .top-header .header-left .page-title p {
-                font-size: 11px;
-            }
-            .top-header .header-right .admin-profile .admin-info {
-                display: none;
-            }
-            .content-area {
-                padding: 16px;
-            }
-            .settings-card {
-                padding: 16px;
-            }
-            .form-row {
-                grid-template-columns: 1fr;
-            }
-            .settings-sidebar .settings-nav button {
-                font-size: 12px;
-                padding: 8px 12px;
-                min-width: 80px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .settings-card {
-                padding: 12px;
-            }
-            .settings-card .card-title {
-                font-size: 16px;
-            }
-            .settings-sidebar .settings-nav button {
-                font-size: 11px;
-                padding: 6px 10px;
-                min-width: 60px;
-            }
-            .checkbox-group {
-                flex-direction: column;
-                gap: 6px;
-            }
-        }
-
-        /* Scrollbar */
-        ::-webkit-scrollbar {
-            width: 5px;
-            height: 5px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 3px;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #c1c7cd;
-            border-radius: 3px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #a0a8b0;
-        }
-    </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Settings — DBI Assess Admin</title>
+  <meta name="robots" content="noindex">
+  <link rel="icon" href="../images/icon-192.png">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../shared/ui.css">
 </head>
 <body>
-
-    <!-- Sidebar Overlay (Mobile) -->
-    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
-
-    <!-- ===== SIDEBAR ===== -->
-    <aside class="sidebar" id="sidebar">
-        <div class="sidebar-brand">
-            <div class="brand-icon">
-                <i class="fas fa-graduation-cap"></i>
-            </div>
-            <div>
-                <div class="brand-text">DBI <span>Assess</span></div>
-                <div class="brand-sub">Admin Panel</div>
-            </div>
+  <main class="page">
+    <div class="page-head"><div><h1>Settings & tools</h1><p>Defaults for new assessments, contact details and one-off data tools.</p></div></div>
+    <div class="grid cols-2">
+      <section class="card">
+        <h2 style="font-size:1.1rem">Defaults for new assessments</h2>
+        <div class="form-grid">
+          <label class="field"><span>Time limit (minutes)</span><input class="input" type="number" min="0" id="d_time"></label>
+          <label class="field"><span>Attempts</span><input class="input" type="number" min="1" id="d_att"></label>
+          <label class="field"><span>Pass mark (%)</span><input class="input" type="number" min="0" max="100" id="d_pass"></label>
         </div>
-
-        <nav class="sidebar-menu">
-            <div class="menu-label">Main</div>
-            <a href="dashboard.html" class="menu-item">
-                <i class="fas fa-th-large"></i> Dashboard
-            </a>
-            <a href="assessments.html" class="menu-item">
-                <i class="fas fa-file-alt"></i> Assessments
-                <span class="badge green" id="assessmentCount">0</span>
-            </a>
-            <a href="questions.html" class="menu-item">
-                <i class="fas fa-question-circle"></i> Question Bank
-                <span class="badge green" id="questionCount">0</span>
-            </a>
-
-            <div class="menu-label">Management</div>
-            <a href="students.html" class="menu-item">
-                <i class="fas fa-users"></i> Students
-                <span class="badge green" id="studentCount">0</span>
-            </a>
-            <a href="results.html" class="menu-item">
-                <i class="fas fa-chart-bar"></i> Results
-            </a>
-            <a href="certificates.html" class="menu-item">
-                <i class="fas fa-certificate"></i> Certificates
-                <span class="badge green" id="certificateCount">0</span>
-            </a>
-
-            <div class="menu-label">Settings</div>
-            <a href="settings.html" class="menu-item active">
-                <i class="fas fa-cog"></i> Settings
-            </a>
-            <a href="#" class="menu-item" onclick="handleLogout()">
-                <i class="fas fa-sign-out-alt"></i> Logout
-            </a>
-        </nav>
-    </aside>
-
-    <!-- ===== MAIN CONTENT ===== -->
-    <div class="main-content">
-        <!-- Top Header -->
-        <header class="top-header">
-            <div class="header-left">
-                <button class="hamburger" id="hamburgerBtn">
-                    <i class="fas fa-bars"></i>
-                </button>
-                <div class="page-title">
-                    <h1>Settings</h1>
-                    <p>Configure your assessment platform</p>
-                </div>
-            </div>
-            <div class="header-right">
-                <div class="admin-profile">
-                    <div class="avatar" id="adminAvatar">A</div>
-                    <div class="admin-info">
-                        <div class="name" id="adminName">Admin</div>
-                        <div class="role" id="adminRole">Super Admin</div>
-                    </div>
-                    <i class="fas fa-chevron-down chevron"></i>
-                </div>
-            </div>
-        </header>
-
-        <!-- Content Area -->
-        <div class="content-area" id="pageContent">
-            <!-- Page content loaded dynamically -->
-        </div>
+        <h2 style="font-size:1.1rem;margin-top:10px">Help for students</h2>
+        <label class="field"><span>Support contact shown to students</span><input class="input" id="d_support" placeholder="e.g. WhatsApp 024 000 0000"></label>
+        <label class="field"><span>Notice on the student dashboard (optional)</span><textarea class="input" id="d_notice" rows="2" placeholder="e.g. Mid-term tests open on Monday at 9:00."></textarea></label>
+        <button class="btn primary" id="saveBtn"></button>
+        <p class="hint" style="margin-top:10px">Email passwords are no longer stored here. Saving removes any old SMTP password from the database.</p>
+      </section>
+      <section class="card">
+        <h2 style="font-size:1.1rem">Data tools</h2>
+        <p class="small muted">Run these once after moving from the old system. Each one is safe to run again.</p>
+        <div class="switch-row"><div><b>Protect student passwords</b><small>Replaces plain-text passwords with secure hashes. Students keep the same password.</small></div><button class="btn ghost sm" data-tool="secure">Run</button></div>
+        <div class="switch-row"><div><b>Import students from the DBI registry</b><small>Copies names and schools. Nobody is removed.</small></div><button class="btn ghost sm" data-tool="import">Run</button></div>
+        <div class="switch-row"><div><b>Upgrade all questions</b><small>Moves answer keys to the protected store and links them to options, so correct answers are not marked wrong.</small></div><button class="btn ghost sm" data-tool="upgrade">Run</button></div>
+        <div class="switch-row"><div><b>Regrade every assessment</b><small>Re-marks all new-system attempts with the current keys. Teacher marks are kept.</small></div><button class="btn ghost sm" data-tool="regrade">Run</button></div>
+        <div id="toolOut" class="small" style="margin-top:10px"></div>
+      </section>
     </div>
+    <section class="card" style="margin-top:16px"><h2 style="font-size:1.1rem">Recent admin activity</h2><div id="audit"><div class="skeleton" style="height:80px"></div></div></section>
+  </main>
 
-    <!-- ===== TOAST ===== -->
-    <div id="toast" class="toast">
-        <i class="fas fa-check-circle"></i>
-        <span id="toastMessage">Success!</span>
-    </div>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="../shared/config.js"></script>
+  <script src="../shared/core.js"></script>
+  <script src="../shared/grading.js"></script>
+  <script src="../shared/admin.js"></script>
+  <script>
+    (async function () {
+      var me = await DBI.requireAdmin();
+      DBI.adminShell('settings', me);
+      var esc = DBI.esc, icon = DBI.icon, G = window.DBIGrading, FV = firebase.firestore.FieldValue;
+      var ref = DBI.db.collection('settings').doc('platformSettings');
+      document.getElementById('saveBtn').innerHTML = icon('check') + 'Save settings';
+      var s = {};
+      try {
+        var snap = await ref.get();
+        s = snap.exists ? snap.data() : {};
+      } catch (e) {}
+      document.getElementById('d_time').value = s.defaultTimeLimit || 30;
+      document.getElementById('d_att').value = s.defaultAttempts || 1;
+      document.getElementById('d_pass').value = s.defaultPassingScore || 50;
+      document.getElementById('d_support').value = s.supportContact || '';
+      document.getElementById('d_notice').value = s.studentNotice || '';
 
-    <!-- ============================================================
-    JAVASCRIPT
-    ============================================================ -->
-    <script src="js/settings.js"></script>
-    
-    <script>
-        // ============================================================
-        // FIREBASE CONFIGURATION
-        // ============================================================
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyCdrmMMmZ0xdC2A_GXdAcWnUAa1i6QbjwQ",
-            authDomain: "dbi-assess.firebaseapp.com",
-            projectId: "dbi-assess",
-            storageBucket: "dbi-assess.firebasestorage.app",
-            messagingSenderId: "558455201415",
-            appId: "1:558455201415:web:4a12a7b7c4cff9ecb6a222",
-            measurementId: "G-FE2BPSJ4C5"
-        };
-
-        let db = null;
-        let currentUser = null;
-
+      document.getElementById('saveBtn').onclick = async function () {
+        var b = this;
+        DBI.busy(b, true, 'Saving…');
         try {
-            firebase.initializeApp(firebaseConfig);
-            db = firebase.firestore();
-            console.log('✅ Firebase initialized successfully');
-        } catch (error) {
-            console.error('❌ Firebase initialization error:', error);
+          await ref.set({
+            defaultTimeLimit: Math.max(0, Number(document.getElementById('d_time').value) || 30),
+            defaultAttempts: Math.max(1, Number(document.getElementById('d_att').value) || 1),
+            defaultPassingScore: Math.min(100, Math.max(0, Number(document.getElementById('d_pass').value) || 50)),
+            supportContact: document.getElementById('d_support').value.trim(),
+            studentNotice: document.getElementById('d_notice').value.trim(),
+            smtpPassword: FV.delete(),
+            updatedAt: FV.serverTimestamp(),
+            updatedBy: me.user.email,
+          }, { merge: true });
+          DBI.toast('Settings saved', 'ok');
+        } catch (e) {
+          DBI.toast(e.message, 'error');
         }
+        DBI.busy(b, false);
+      };
 
-        // ============================================================
-        // AUTHENTICATION CHECK
-        // ============================================================
+      var out = document.getElementById('toolOut');
+      function log(t, kind) { out.innerHTML = '<div class="alert ' + (kind || '') + '">' + esc(t) + '</div>'; }
 
-        firebase.auth().onAuthStateChanged(async (user) => {
-            if (user) {
-                currentUser = user;
-                console.log('✅ User logged in:', user.email || user.uid);
-                
-                try {
-                    const adminDoc = await db.collection('admins').doc(user.uid).get();
-                    if (adminDoc.exists) {
-                        const adminData = adminDoc.data();
-                        document.getElementById('adminName').textContent = adminData.name || user.email;
-                        document.getElementById('adminRole').textContent = adminData.role || 'Super Admin';
-                        document.getElementById('adminAvatar').textContent = (adminData.name || 'A').charAt(0).toUpperCase();
-                        
-                        // Initialize Settings module
-                        const container = document.getElementById('pageContent');
-                        if (typeof Settings !== 'undefined') {
-                            Settings.render(container, { db: db });
-                        }
-                    } else {
-                        showToast('You are not an admin', true);
-                        setTimeout(() => {
-                            window.location.href = 'index.html';
-                        }, 2000);
-                    }
-                } catch (error) {
-                    console.error('Admin check error:', error);
-                    showToast('Error verifying admin status', true);
-                }
-            } else {
-                console.log('⚠️ No user logged in');
-                // window.location.href = 'index.html';
+      async function upgradeAll() {
+        var qs = await DBI.db.collection('questions').get();
+        var ops = [], n = 0, tf = 0, warn = 0;
+        for (var i = 0; i < qs.docs.length; i++) {
+          var d = qs.docs[i], data = d.data();
+          if (data.version === 2) continue;
+          var k = await DBI.db.collection('questionKeys').doc(d.id).get();
+          var norm = G.normalizeQuestion(Object.assign({ id: d.id }, data), k.exists ? k.data() : null);
+          var q = norm.question;
+          var doc = { type: q.type, text: q.text, points: q.points, imageUrl: q.imageUrl || '', imageAlt: q.imageAlt || '', version: 2, assessmentId: data.assessmentId, order: isNaN(Number(data.order)) ? i * 10 : Number(data.order), createdAt: data.createdAt || FV.serverTimestamp(), updatedAt: FV.serverTimestamp(), upgradedAt: FV.serverTimestamp() };
+          ['options', 'prompts', 'choices', 'items', 'unit', 'language', 'starterCode', 'codeToRead', 'codeSubType', 'instructions', 'fileTypes', 'maxFileSize'].forEach(function (f) { if (q[f] !== undefined && q[f] !== '') doc[f] = q[f]; });
+          if (q.maxWords) doc.maxWordCount = q.maxWords;
+          if (data.archived) doc.archived = true;
+          if (q.type === 'true-false') { doc.keyCheck = 'true-false-default'; tf++; }
+          if (norm.warnings.length) warn++;
+          var key = JSON.parse(JSON.stringify(norm.key));
+          (function (id, doc, key) {
+            ops.push(function (b) { b.set(DBI.db.collection('questions').doc(id), doc); });
+            ops.push(function (b) { b.set(DBI.db.collection('questionKeys').doc(id), Object.assign(key, { assessmentId: doc.assessmentId, upgradedFrom: 'v1', updatedAt: FV.serverTimestamp() })); });
+          })(d.id, doc, key);
+          n++;
+        }
+        await DBI.batchWrite(ops);
+        return 'Upgraded ' + n + ' questions. ' + (warn ? warn + ' have missing or unmatched answers — open them on the Questions page. ' : '') + (tf ? tf + ' true/false questions are marked “Confirm answer” because the old builder saved “False” by default.' : '');
+      }
+
+      document.querySelectorAll('[data-tool]').forEach(function (b) {
+        b.onclick = async function () {
+          var t = b.dataset.tool;
+          if (t === 'regrade' && !(await DBI.confirm('Regrade every assessment?', 'Scores may change if answer keys were fixed. Certificates are issued to anyone who now passes.', 'Regrade'))) return;
+          DBI.busy(b, true, '…');
+          try {
+            if (t === 'secure') {
+              var r = await DBI.api('POST', '/admin/students/secure-passwords', {}, { timeout: 180000 });
+              log('Protected ' + r.hashed + ' passwords and tidied ' + r.merged + ' student records.', 'ok');
             }
-        });
-
-        // ============================================================
-        // GLOBAL FUNCTIONS
-        // ============================================================
-
-        function closeSidebar() {
-            document.getElementById('sidebar').classList.remove('open');
-            document.getElementById('sidebarOverlay').classList.remove('show');
-        }
-
-        function showToast(message, isError = false) {
-            const toast = document.getElementById('toast');
-            const toastMessage = document.getElementById('toastMessage');
-            
-            toastMessage.textContent = message;
-            toast.className = 'toast';
-            if (isError) {
-                toast.classList.add('error');
-                toast.querySelector('i').className = 'fas fa-exclamation-circle';
-            } else {
-                toast.classList.add('success');
-                toast.querySelector('i').className = 'fas fa-check-circle';
+            if (t === 'import') {
+              var r2 = await DBI.api('POST', '/admin/students/import', {}, { timeout: 180000 });
+              log('Imported or updated ' + r2.imported + ' students.', 'ok');
             }
-            toast.classList.add('show');
-            
-            clearTimeout(toast._timeout);
-            toast._timeout = setTimeout(() => {
-                toast.classList.remove('show');
-            }, 4000);
-        }
-
-        function handleLogout() {
-            if (confirm('Are you sure you want to logout?')) {
-                firebase.auth().signOut().then(() => {
-                    window.location.href = 'index.html';
-                }).catch(error => {
-                    showToast('Error logging out: ' + error.message, true);
-                });
+            if (t === 'upgrade') log(await upgradeAll(), 'ok');
+            if (t === 'regrade') {
+              var list = await DBI.loadAssessments(), total = 0, changed = 0;
+              for (var i = 0; i < list.length; i++) {
+                out.innerHTML = '<div class="alert"><span class="spin"></span> Regrading ' + esc(list[i].title || '') + ' (' + (i + 1) + '/' + list.length + ')</div>';
+                var x = await DBI.api('POST', '/admin/assessments/' + encodeURIComponent(list[i].id) + '/regrade', {}, { timeout: 180000 });
+                total += x.attempts;
+                changed += x.changed;
+              }
+              log('Regraded ' + total + ' attempts; ' + changed + ' scores changed.', 'ok');
             }
+          } catch (e) {
+            log(e.message, 'error');
+          }
+          DBI.busy(b, false);
+          loadAudit();
+        };
+      });
+
+      async function loadAudit() {
+        try {
+          var snap = await DBI.db.collection('auditLogs').orderBy('at', 'desc').limit(25).get();
+          document.getElementById('audit').innerHTML = snap.empty ? '<p class="empty-line">No activity yet.</p>' : '<ul class="timeline">' + snap.docs.map(function (d) {
+            var a = d.data();
+            return '<li><time style="width:130px">' + esc(DBI.fmtDate(a.at, true)) + '</time><span><b>' + esc(a.action) + '</b> · ' + esc(a.target || '') + ' <span class="muted">by ' + esc(a.by || '') + '</span></span></li>';
+          }).join('') + '</ul>';
+        } catch (e) {
+          document.getElementById('audit').innerHTML = '<p class="muted small">' + esc(e.message) + '</p>';
         }
-
-        // ============================================================
-        // EVENT LISTENERS
-        // ============================================================
-
-        document.addEventListener('DOMContentLoaded', () => {
-            // Hamburger menu
-            document.getElementById('hamburgerBtn').addEventListener('click', () => {
-                document.getElementById('sidebar').classList.toggle('open');
-                document.getElementById('sidebarOverlay').classList.toggle('show');
-            });
-
-            // Close sidebar on overlay click
-            document.getElementById('sidebarOverlay').addEventListener('click', closeSidebar);
-
-            // Close sidebar on window resize (desktop)
-            window.addEventListener('resize', () => {
-                if (window.innerWidth > 768) {
-                    document.getElementById('sidebar').classList.remove('open');
-                    document.getElementById('sidebarOverlay').classList.remove('show');
-                }
-            });
-        });
-
-        console.log('%c📊 DBI Assess Admin Panel', 'font-size: 20px; font-weight: bold; color: #166534;');
-        console.log('%c🔐 Settings System v1.0', 'font-size: 14px; color: #22c55e;');
-        console.log('%c⚙️ Configure your assessment platform', 'font-size: 14px; color: #6b7280;');
-    </script>
-
+      }
+      loadAudit();
+    })();
+  </script>
 </body>
 </html>

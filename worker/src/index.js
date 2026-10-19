@@ -4,6 +4,8 @@ import { changePassword, studentLogin } from './auth.js';
 import { checkAnswer, myAttempt, myAttempts, startAttempt, submitAttempt, syncAttempt } from './exam.js';
 import { adminAttempt, attemptAction, importRegistry, markAttempt, regradeAssessment, securePasswords, setStudentPassword } from './admin.js';
 import { sha1Hex } from './google.js';
+import { issueManualCertificate } from './certificates.js';
+import { audit } from './admin.js';
 
 async function signUpload(request, ctx) {
   const env = ctx.env;
@@ -75,6 +77,13 @@ async function route(request, env) {
   if (post && (r = m(/^\/admin\/assessments\/([\w-]+)\/regrade$/))) return regradeAssessment(request, ctx, await requireAdmin(request, ctx), r[1]);
   if (post && path === '/admin/students/password') return setStudentPassword(request, ctx, await requireAdmin(request, ctx));
   if (post && path === '/admin/students/secure-passwords') return securePasswords(request, ctx, await requireAdmin(request, ctx));
+  if (post && path === '/admin/certificates/issue') {
+    const admin = await requireAdmin(request, ctx);
+    const out = await issueManualCertificate(ctx, admin, await request.json().catch(() => ({})));
+    if (out.error) fail(400, 'BAD_REQUEST', out.error);
+    await audit(ctx, admin, 'issue-certificate', out.certificateId, {});
+    return json(out);
+  }
   if (post && path === '/admin/students/import') return importRegistry(request, ctx, await requireAdmin(request, ctx));
 
   fail(404, 'NOT_FOUND', 'Not found.');

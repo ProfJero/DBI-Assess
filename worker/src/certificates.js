@@ -103,3 +103,54 @@ export async function issueCertificateIfEligible(ctx, result, assessment) {
 }
 
 export { allocateAndCreate };
+
+/**
+ * Admin-issued certificate (e.g. for a workshop with no online test). Uses the same atomic serials.
+ * body: { studentId, title, department, type: 'completion'|'achievement', score?, assessmentId?, pending? }
+ */
+export async function issueManualCertificate(ctx, admin, body) {
+  const studentId = String(body.studentId || '').trim().toUpperCase();
+  const title = String(body.title || '').trim().slice(0, 200);
+  if (!studentId || !title) return { error: 'Student ID and title are required.' };
+  const profile = (await ctx.db.get(`users/stu_${studentId}`)) || (await ctx.db.query('users', [['studentId', '==', studentId]], { limit: 1 }))[0];
+  if (!profile) return { error: 'No student with that ID.' };
+  const department = String(body.department || 'General');
+  const type = body.type === 'achievement' ? 'achievement' : 'completion';
+  const code = programCode(department);
+  const year = new Date().getUTCFullYear().toString().slice(-2);
+  const prefix = `DBI-${code}-${year}-${type === 'achievement' ? 'CA' : 'CC'}`;
+  const score = body.score === '' || body.score == null ? null : Math.max(0, Math.min(100, Number(body.score) || 0));
+  const g = score == null ? { grade: '', gradeClass: 'completion' } : gradeFor(score);
+  const pending = !!body.pending;
+  const serial = await allocateAndCreate(ctx, prefix, (certificateId) => ({
+    certificateId,
+    studentId,
+    studentUid: `stu_${studentId}`,
+    studentFirstName: profile.firstName || '',
+    studentLastName: profile.lastName || '',
+    studentEmail: profile.email || '',
+    assessmentId: body.assessmentId || null,
+    assessmentTitle: title,
+    department,
+    type,
+    grade: g.grade,
+    gradeClass: g.gradeClass,
+    score,
+    hasResult: score != null,
+    status: pending ? 'pending' : 'issued',
+    issuedAt: pending ? null : nowIso(),
+    createdAt: nowIso(),
+    updatedAt: nowIso(),
+    template: 'default',
+    isTemplate: false,
+    isManual: true,
+    issuedBy: admin.email || admin.sub,
+    watermark: pending ? 'PENDING' : null,
+    isLocked: pending,
+    signatory1: 'executiveDirector',
+    signatory2: 'departmentHead',
+    signatory3: 'secretary',
+    programCode: code,
+  }));
+  return { ok: true, certificateId: serial };
+}

@@ -23,6 +23,7 @@ On the Spark plan Firestore rules can say *who* may write, but they cannot grade
 | Student's own attempts and released results | `GET /me/attempts`, `GET /me/attempts/:id` |
 | Admin: save manual marks, release, regrade, unlock, extend, void | `POST /admin/*` |
 | Admin: set student passwords, secure old plaintext passwords | `POST /admin/students/*` |
+| Admin: issue a certificate by hand (atomic serial) | `POST /admin/certificates/issue` |
 | Signed Cloudinary uploads | `POST /media/sign` |
 
 ## Collections (dbi-assess)
