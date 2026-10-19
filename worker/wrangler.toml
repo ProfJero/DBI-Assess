@@ -1,0 +1,19 @@
+name = "dbi-assess-api"
+main = "src/index.js"
+compatibility_date = "2026-09-01"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+FIREBASE_PROJECT_ID = "dbi-assess"
+# The main DBI student registry (read-only, used to sign in students who are not yet in dbi-assess).
+REGISTRY_PROJECT_ID = "rth-admin-dues"
+REGISTRY_API_KEY = "AIzaSyDqB6Qekb-YcaPzEqvlHKhFGDOx6nh-7bA"
+# Comma-separated list of sites allowed to call the API, e.g. "https://assess.dbi.org.gh". "*" allows any.
+ALLOWED_ORIGINS = "*"
+# How long after the deadline a submission sealed offline (before the deadline) may still be uploaded.
+LATE_SYNC_HOURS = "24"
+CLOUDINARY_CLOUD_NAME = ""
+
+# Secrets (set with `npx wrangler secret put NAME`, never committed):
+#   FIREBASE_SERVICE_ACCOUNT   the whole service-account JSON from Firebase → Project settings → Service accounts
+#   CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET   optional, for file-upload questions and question images

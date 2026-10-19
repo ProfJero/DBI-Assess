@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Verify a certificate — DBI Assess</title>
+  <meta name="description" content="Check that a Digital Bridge Initiative certificate is genuine.">
+  <link rel="icon" href="images/icon-192.png">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="shared/ui.css">
+</head>
+<body>
+  <main class="auth-page">
+    <div class="auth-card" style="width:min(100%,520px)">
+      <div class="logo"><img src="images/DBI-Official-Logo.png" alt="Digital Bridge Initiative" style="max-width:220px;height:auto"><h1 style="margin-top:12px">Verify a certificate</h1><p class="muted">Enter the certificate ID printed on the certificate.</p></div>
+      <form id="f" class="row" style="flex-wrap:nowrap"><input class="input" id="cid" placeholder="e.g. DBI-DS-26-CC001" autocapitalize="characters" required><button class="btn primary">Check</button></form>
+      <div id="out" style="margin-top:16px" aria-live="polite"></div>
+    </div>
+  </main>
+  <script src="shared/config.js"></script>
+  <script>
+    (function () {
+      var esc = function (v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
+      var out = document.getElementById('out');
+      async function check(id) {
+        out.innerHTML = '<div class="skeleton" style="height:90px"></div>';
+        try {
+          var res = await fetch(DBI_CONFIG.apiUrl + '/verify/' + encodeURIComponent(id.trim().toUpperCase()));
+          var d = await res.json();
+          if (!res.ok || !d.certificateId) {
+            out.innerHTML = '<div class="alert error"><span><b>Not found.</b> No DBI certificate has the ID “' + esc(id) + '”. Check the spelling.</span></div>';
+          } else if (!d.valid) {
+            out.innerHTML = '<div class="alert error"><span><b>This certificate was revoked</b> and is no longer valid.</span></div>';
+          } else {
+            out.innerHTML = '<div class="alert ok" style="display:block"><b style="font-size:1.1rem">✓ Genuine certificate</b><div style="margin-top:8px;color:var(--ink)"><b>' + esc(d.name) + '</b><br>' + esc(d.assessmentTitle) + (d.department ? ' · ' + esc(d.department) : '') + (d.grade ? '<br>Grade: ' + esc(d.grade) : '') + (d.issuedAt ? '<br>Issued: ' + esc(new Date(d.issuedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })) : '') + '<br><small class="muted">' + esc(d.certificateId) + '</small></div></div>';
+          }
+        } catch (e) {
+          out.innerHTML = '<div class="alert warn"><span>Could not check right now. Please try again.</span></div>';
+        }
+      }
+      document.getElementById('f').addEventListener('submit', function (e) { e.preventDefault(); check(document.getElementById('cid').value); });
+      var q = new URLSearchParams(location.search).get('id');
+      if (q) { document.getElementById('cid').value = q; check(q); }
+    })();
+  </script>
+  <p class="credit">Built by <b>ProfJero Digital Studio</b> · Powered by <b>Digital Bridge Initiative</b></p>
+</body>
+</html>
