@@ -1,1137 +1,606 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    <title>Results - DBI Assess Admin</title>
-    
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: {
-                            50: '#eff6ff',
-                            100: '#dbeafe',
-                            200: '#bfdbfe',
-                            300: '#93c5fd',
-                            400: '#60a5fa',
-                            500: '#3b82f6',
-                            600: '#2563eb',
-                            700: '#1d4ed8',
-                            800: '#1e40af',
-                            900: '#1e3a8a',
-                        },
-                        sidebar: '#1a1f2c',
-                        success: '#10b981',
-                        warning: '#f59e0b',
-                        danger: '#ef4444',
-                        info: '#06b6d4',
-                    },
-                    fontFamily: {
-                        'inter': ['Inter', 'system-ui', 'sans-serif'],
-                    },
-                    animation: {
-                        'fade-in': 'fadeIn 0.3s ease-out',
-                        'slide-up': 'slideUp 0.3s ease-out',
-                    },
-                    boxShadow: {
-                        'soft': '0 2px 15px -3px rgba(0,0,0,0.07), 0 10px 20px -2px rgba(0,0,0,0.04)',
-                        'strong': '0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)',
-                    }
-                }
-            }
-        }
-    </script>
-    
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"/>
-    
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    
-    <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-    
-    <style>
-        /* ============================================================
-           DBI ASSESS ADMIN - RESULTS STYLES
-           ============================================================ */
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background: #f0f2f5;
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-
-        /* ===== SIDEBAR ===== */
-        .sidebar {
-            width: 260px;
-            background: #1a1f2c;
-            color: white;
-            min-height: 100vh;
-            position: fixed;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            overflow-y: auto;
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            z-index: 1000;
-            padding-bottom: 20px;
-        }
-
-        .sidebar::-webkit-scrollbar {
-            width: 4px;
-        }
-        .sidebar::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        .sidebar::-webkit-scrollbar-thumb {
-            background: #374151;
-            border-radius: 2px;
-        }
-
-        .sidebar-brand {
-            padding: 20px 20px 16px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            position: sticky;
-            top: 0;
-            background: #1a1f2c;
-            z-index: 2;
-        }
-
-        .sidebar-brand .brand-icon {
-            width: 40px;
-            height: 40px;
-            background: linear-gradient(135deg, #166534, #22c55e);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            flex-shrink: 0;
-        }
-
-        .sidebar-brand .brand-text {
-            font-size: 18px;
-            font-weight: 700;
-            line-height: 1.2;
-        }
-        .sidebar-brand .brand-text span {
-            color: #22c55e;
-        }
-        .sidebar-brand .brand-sub {
-            font-size: 9px;
-            color: #6b7280;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            margin-top: 1px;
-        }
-
-        .sidebar-menu {
-            padding: 12px 10px;
-        }
-
-        .sidebar-menu .menu-label {
-            font-size: 10px;
-            text-transform: uppercase;
-            color: #6b7280;
-            letter-spacing: 1.2px;
-            padding: 12px 12px 6px;
-            font-weight: 600;
-        }
-
-        .sidebar-menu .menu-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 10px 14px;
-            border-radius: 10px;
-            color: #9ca3af;
-            transition: all 0.25s ease;
-            cursor: pointer;
-            margin-bottom: 2px;
-            font-family: 'Inter', sans-serif;
-            font-size: 14px;
-            background: none;
-            border: none;
-            width: 100%;
-            text-align: left;
-        }
-
-        .sidebar-menu .menu-item:hover {
-            background: rgba(255, 255, 255, 0.06);
-            color: white;
-        }
-
-        .sidebar-menu .menu-item.active {
-            background: linear-gradient(135deg, #166534, #15803d);
-            color: white;
-            box-shadow: 0 4px 15px rgba(22, 101, 52, 0.3);
-        }
-
-        .sidebar-menu .menu-item i {
-            width: 20px;
-            text-align: center;
-            font-size: 16px;
-            flex-shrink: 0;
-        }
-
-        .sidebar-menu .menu-item .badge {
-            margin-left: auto;
-            background: #dc2626;
-            color: white;
-            font-size: 10px;
-            padding: 1px 8px;
-            border-radius: 12px;
-            font-weight: 600;
-        }
-        .sidebar-menu .menu-item .badge.green {
-            background: #22c55e;
-        }
-
-        /* ===== MAIN CONTENT ===== */
-        .main-content {
-            flex: 1;
-            margin-left: 260px;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        /* ===== TOP HEADER ===== */
-        .top-header {
-            background: white;
-            padding: 12px 24px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #e5e7eb;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            min-height: 64px;
-            flex-shrink: 0;
-        }
-
-        .top-header .header-left {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            min-width: 0;
-        }
-
-        .top-header .header-left .hamburger {
-            display: none;
-            background: none;
-            border: none;
-            font-size: 22px;
-            color: #1a1f2c;
-            cursor: pointer;
-            padding: 4px;
-            flex-shrink: 0;
-        }
-
-        .top-header .header-left .page-title h1 {
-            font-size: 18px;
-            font-weight: 700;
-            color: #1a1f2c;
-        }
-
-        .top-header .header-left .page-title p {
-            font-size: 12px;
-            color: #6b7280;
-        }
-
-        .top-header .header-right {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            flex-shrink: 0;
-        }
-
-        .top-header .header-right .admin-profile {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-            padding: 4px 12px 4px 4px;
-            border-radius: 30px;
-            transition: background 0.2s ease;
-        }
-
-        .top-header .header-right .admin-profile:hover {
-            background: #f3f4f6;
-        }
-
-        .top-header .header-right .admin-profile .avatar {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #166534, #22c55e);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 700;
-            font-size: 13px;
-            flex-shrink: 0;
-        }
-
-        .top-header .header-right .admin-profile .admin-info .name {
-            font-weight: 600;
-            color: #1a1f2c;
-            font-size: 13px;
-        }
-
-        .top-header .header-right .admin-profile .admin-info .role {
-            color: #6b7280;
-            font-size: 11px;
-        }
-
-        /* ===== CONTENT AREA ===== */
-        .content-area {
-            padding: 20px 24px 40px;
-            flex: 1;
-        }
-
-        /* ===== PAGE HEADER ===== */
-        .page-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 24px;
-            flex-wrap: wrap;
-            gap: 12px;
-        }
-        .page-header h2 {
-            font-size: 24px;
-            font-weight: 700;
-            color: #1a1f2c;
-            margin: 0;
-        }
-        .page-header .subtitle {
-            color: #6b7280;
-            font-size: 14px;
-            margin-top: 4px;
-        }
-        .header-actions {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        /* ===== STATS CARDS ===== */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 16px;
-            margin-bottom: 24px;
-        }
-        .stat-card {
-            background: white;
-            border-radius: 12px;
-            padding: 16px 20px;
-            border: 1px solid #e5e7eb;
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            transition: all 0.3s ease;
-        }
-        .stat-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.06);
-        }
-        .stat-card .stat-icon {
-            width: 44px;
-            height: 44px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            flex-shrink: 0;
-        }
-        .stat-card .stat-icon.blue { background: #dbeafe; color: #1d4ed8; }
-        .stat-card .stat-icon.green { background: #dcfce7; color: #166534; }
-        .stat-card .stat-icon.orange { background: #fef3c7; color: #d97706; }
-        .stat-card .stat-icon.purple { background: #ede9fe; color: #7c3aed; }
-        .stat-card .stat-icon.red { background: #fee2e2; color: #dc2626; }
-        .stat-card .stat-number {
-            font-size: 22px;
-            font-weight: 700;
-            color: #1a1f2c;
-            line-height: 1.2;
-        }
-        .stat-card .stat-label {
-            font-size: 12px;
-            color: #6b7280;
-        }
-
-        /* ===== FILTER BAR ===== */
-        .filter-bar {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin-bottom: 20px;
-            background: white;
-            padding: 14px 18px;
-            border-radius: 12px;
-            border: 1px solid #e5e7eb;
-            align-items: center;
-        }
-        .filter-group {
-            flex: 1;
-            min-width: 120px;
-            position: relative;
-        }
-        .filter-group.search-group {
-            flex: 2;
-            min-width: 180px;
-        }
-        .filter-group.search-group i {
-            position: absolute;
-            left: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #9ca3af;
-            font-size: 14px;
-        }
-        .filter-group.search-group input {
-            padding-left: 36px;
-        }
-        .filter-group input,
-        .filter-group select {
-            width: 100%;
-            padding: 8px 12px;
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            font-size: 13px;
-            font-family: 'Inter', sans-serif;
-            background: #f8fafc;
-            transition: all 0.3s ease;
-        }
-        .filter-group input:focus,
-        .filter-group select:focus {
-            border-color: #22c55e;
-            outline: none;
-            background: white;
-            box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1);
-        }
-
-        /* ===== TABLE ===== */
-        .table-container {
-            background: white;
-            border-radius: 12px;
-            border: 1px solid #e5e7eb;
-            overflow: hidden;
-        }
-        .table-header {
-            padding: 14px 20px;
-            border-bottom: 1px solid #e5e7eb;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        .table-header span {
-            font-weight: 600;
-            font-size: 14px;
-            color: #1a1f2c;
-        }
-        .table-header .table-count {
-            font-weight: 400;
-            color: #6b7280;
-            font-size: 13px;
-        }
-        .table-scroll {
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            min-width: 700px;
-        }
-        table th {
-            background: #f8fafc;
-            padding: 12px 16px;
-            text-align: left;
-            font-size: 11px;
-            font-weight: 600;
-            color: #6b7280;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            border-bottom: 1px solid #e5e7eb;
-            white-space: nowrap;
-        }
-        table td {
-            padding: 12px 16px;
-            font-size: 13px;
-            color: #1a1f2c;
-            border-bottom: 1px solid #f3f4f6;
-            vertical-align: middle;
-        }
-        table tr:last-child td {
-            border-bottom: none;
-        }
-        table tr:hover td {
-            background: #fafafa;
-        }
-
-        /* Badges */
-        .badge-status {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 4px 14px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            white-space: nowrap;
-        }
-        .badge-status.passed { background: #dcfce7; color: #166534; }
-        .badge-status.failed { background: #fee2e2; color: #991b1b; }
-        .badge-status.pending { background: #fef3c7; color: #92400e; }
-
-        /* Action Buttons */
-        .action-btns {
-            display: flex;
-            gap: 4px;
-            flex-wrap: wrap;
-        }
-        .action-btns button {
-            background: none;
-            border: none;
-            padding: 6px 8px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.2s ease;
-            color: #6b7280;
-            font-family: 'Inter', sans-serif;
-        }
-        .action-btns button:hover {
-            background: #f3f4f6;
-            color: #1a1f2c;
-        }
-        .action-btns button.view:hover {
-            color: #1d4ed8;
-            background: #dbeafe;
-        }
-        .action-btns button.delete:hover {
-            color: #dc2626;
-            background: #fee2e2;
-        }
-        .action-btns button.export:hover {
-            color: #166534;
-            background: #dcfce7;
-        }
-
-        /* Empty State */
-        .empty-state {
-            text-align: center;
-            padding: 50px 20px;
-            color: #6b7280;
-        }
-        .empty-state i {
-            font-size: 40px;
-            color: #d1d5db;
-            margin-bottom: 14px;
-            display: block;
-        }
-        .empty-state h3 {
-            font-size: 17px;
-            color: #1a1f2c;
-            margin-bottom: 6px;
-        }
-        .empty-state p {
-            font-size: 14px;
-        }
-
-        /* Toast */
-        .toast {
-            position: fixed;
-            bottom: 24px;
-            right: 24px;
-            background: #1a1f2c;
-            color: white;
-            padding: 14px 22px;
-            border-radius: 12px;
-            font-weight: 500;
-            font-size: 13px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            transform: translateY(120%);
-            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-            z-index: 2000;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            max-width: 90%;
-        }
-        .toast.show {
-            transform: translateY(0);
-        }
-        .toast i {
-            font-size: 18px;
-        }
-        .toast.success { background: #166534; }
-        .toast.error { background: #dc2626; }
-
-        /* Sidebar overlay */
-        .sidebar-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.4);
-            z-index: 999;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-        .sidebar-overlay.show {
-            display: block;
-            opacity: 1;
-        }
-
-        /* Buttons */
-        .btn-primary {
-            background: linear-gradient(135deg, #166534, #22c55e);
-            color: white;
-            border: none;
-            padding: 8px 18px;
-            border-radius: 10px;
-            font-weight: 600;
-            font-size: 13px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            font-family: 'Inter', sans-serif;
-            white-space: nowrap;
-        }
-        .btn-primary:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 15px rgba(22, 101, 52, 0.3);
-        }
-
-        .btn-secondary {
-            background: #f3f4f6;
-            color: #1a1f2c;
-            border: 1px solid #e5e7eb;
-            padding: 8px 18px;
-            border-radius: 10px;
-            font-weight: 600;
-            font-size: 13px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            font-family: 'Inter', sans-serif;
-            white-space: nowrap;
-        }
-        .btn-secondary:hover {
-            background: #e5e7eb;
-        }
-
-        .btn-sm {
-            padding: 5px 12px;
-            font-size: 12px;
-            border-radius: 8px;
-        }
-
-        /* Modal */
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(4px);
-            z-index: 1500;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-        .modal-overlay.show {
-            display: flex;
-        }
-        .modal {
-            background: white;
-            border-radius: 18px;
-            max-width: 700px;
-            width: 100%;
-            max-height: 92vh;
-            overflow: hidden;
-            animation: modalSlideUp 0.3s ease;
-        }
-        @keyframes modalSlideUp {
-            from { opacity: 0; transform: translateY(30px) scale(0.96); }
-            to { opacity: 1; transform: translateY(0) scale(1); }
-        }
-        .modal-header {
-            padding: 18px 22px;
-            border-bottom: 1px solid #e5e7eb;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: sticky;
-            top: 0;
-            background: white;
-            border-radius: 18px 18px 0 0;
-            z-index: 2;
-        }
-        .modal-header h3 {
-            font-size: 18px;
-            font-weight: 700;
-            color: #1a1f2c;
-        }
-        .modal-header .close-modal {
-            background: none;
-            border: none;
-            font-size: 24px;
-            color: #6b7280;
-            cursor: pointer;
-            padding: 4px 8px;
-            border-radius: 8px;
-            transition: all 0.2s ease;
-        }
-        .modal-header .close-modal:hover {
-            background: #fee2e2;
-            color: #dc2626;
-        }
-        .modal-body {
-            padding: 0 !important;
-            max-height: calc(92vh - 150px);
-            overflow-y: auto;
-        }
-        .modal-body::-webkit-scrollbar {
-            width: 6px;
-        }
-        .modal-body::-webkit-scrollbar-track {
-            background: #f1f1f1;
-        }
-        .modal-body::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 3px;
-        }
-        .modal-body-inner {
-            padding: 22px;
-        }
-
-        /* Responsive */
-        @media (max-width: 1024px) {
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            .modal {
-                max-width: 95%;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .sidebar {
-                transform: translateX(-100%);
-                width: 280px;
-            }
-            .sidebar.open {
-                transform: translateX(0);
-                box-shadow: 0 0 40px rgba(0,0,0,0.3);
-            }
-            .sidebar-overlay.show {
-                display: block;
-            }
-            .main-content {
-                margin-left: 0;
-            }
-            .top-header {
-                padding: 10px 16px;
-                min-height: 56px;
-            }
-            .top-header .header-left .hamburger {
-                display: block;
-            }
-            .top-header .header-left .page-title h1 {
-                font-size: 16px;
-            }
-            .top-header .header-left .page-title p {
-                font-size: 11px;
-            }
-            .top-header .header-right .admin-profile .admin-info {
-                display: none;
-            }
-            .content-area {
-                padding: 16px;
-            }
-            .stats-grid {
-                grid-template-columns: 1fr 1fr;
-                gap: 10px;
-            }
-            .stat-card {
-                padding: 14px 16px;
-            }
-            .stat-card .stat-number {
-                font-size: 20px;
-            }
-            .filter-bar {
-                flex-direction: column;
-            }
-            .filter-group {
-                min-width: 100%;
-            }
-            table {
-                min-width: 600px;
-                font-size: 12px;
-            }
-            table th, table td {
-                padding: 10px 12px;
-            }
-            .page-header {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-            .page-header .header-actions {
-                width: 100%;
-            }
-            .page-header .header-actions .btn-primary {
-                flex: 1;
-                justify-content: center;
-            }
-            .modal {
-                max-width: 100%;
-                margin: 10px;
-                border-radius: 14px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .stats-grid {
-                grid-template-columns: 1fr 1fr;
-                gap: 8px;
-            }
-            .stat-card {
-                padding: 12px;
-                gap: 10px;
-            }
-            .stat-card .stat-icon {
-                width: 36px;
-                height: 36px;
-                font-size: 16px;
-            }
-            .stat-card .stat-number {
-                font-size: 17px;
-            }
-            .stat-card .stat-label {
-                font-size: 11px;
-            }
-            table {
-                font-size: 11px;
-                min-width: 500px;
-            }
-            table th, table td {
-                padding: 8px 10px;
-            }
-            .badge-status {
-                font-size: 10px;
-                padding: 3px 10px;
-            }
-        }
-
-        /* Scrollbar */
-        ::-webkit-scrollbar {
-            width: 5px;
-            height: 5px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 3px;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #c1c7cd;
-            border-radius: 3px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #a0a8b0;
-        }
-    </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Results & marking — DBI Assess Admin</title>
+  <meta name="robots" content="noindex">
+  <link rel="icon" href="../images/icon-192.png">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../shared/ui.css">
+  <style>
+    .ans { background: #f9fafb; border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .ans.code { font-family: var(--mono); font-size: .88rem; background: #0f172a; color: #e2e8f0; }
+    .item { border: 1px solid var(--line); border-radius: 14px; padding: 14px; background: #fff; margin-bottom: 12px; }
+    .item.pending { border-color: #fec84b; box-shadow: 0 0 0 3px var(--amber-50); }
+    .item h3 { font-size: 1rem; margin: 0 0 6px; }
+    .markbox { display: grid; grid-template-columns: 120px 1fr; gap: 10px; margin-top: 10px; align-items: start; }
+    .markbox .input { min-height: 44px; }
+    .markbox textarea.input { min-height: 44px; }
+    @media (max-width: 560px) { .markbox { grid-template-columns: 1fr; } }
+    .quick { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+    .quick button { min-height: 34px; padding: 0 10px; }
+    .sim { color: var(--red); font-weight: 700; }
+    .opt-bar { display: grid; grid-template-columns: 28px 1fr 60px; gap: 8px; align-items: center; font-size: .88rem; margin: 3px 0; }
+    .opt-bar .bar i.right { background: var(--green); }
+  </style>
 </head>
 <body>
-
-    <!-- Sidebar Overlay (Mobile) -->
-    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
-
-    <!-- ===== SIDEBAR ===== -->
-    <aside class="sidebar" id="sidebar">
-        <div class="sidebar-brand">
-            <div class="brand-icon">
-                <i class="fas fa-graduation-cap"></i>
-            </div>
-            <div>
-                <div class="brand-text">DBI <span>Assess</span></div>
-                <div class="brand-sub">Admin Panel</div>
-            </div>
-        </div>
-
-        <nav class="sidebar-menu">
-            <div class="menu-label">Main</div>
-            <a href="dashboard.html" class="menu-item">
-                <i class="fas fa-th-large"></i> Dashboard
-            </a>
-            <a href="assessments.html" class="menu-item">
-                <i class="fas fa-file-alt"></i> Assessments
-                <span class="badge green" id="assessmentCount">0</span>
-            </a>
-            <a href="questions.html" class="menu-item">
-                <i class="fas fa-question-circle"></i> Question Bank
-                <span class="badge green" id="questionCount">0</span>
-            </a>
-
-            <div class="menu-label">Management</div>
-            <a href="students.html" class="menu-item">
-                <i class="fas fa-users"></i> Students
-                <span class="badge green" id="studentCount">0</span>
-            </a>
-            <a href="results.html" class="menu-item active">
-                <i class="fas fa-chart-bar"></i> Results
-            </a>
-            <a href="certificates.html" class="menu-item">
-                <i class="fas fa-certificate"></i> Certificates
-                <span class="badge green" id="certificateCount">0</span>
-            </a>
-
-            <div class="menu-label">Settings</div>
-            <a href="settings.html" class="menu-item">
-                <i class="fas fa-cog"></i> Settings
-            </a>
-            <a href="#" class="menu-item" onclick="handleLogout()">
-                <i class="fas fa-sign-out-alt"></i> Logout
-            </a>
-        </nav>
-    </aside>
-
-    <!-- ===== MAIN CONTENT ===== -->
-    <div class="main-content">
-        <!-- Top Header -->
-        <header class="top-header">
-            <div class="header-left">
-                <button class="hamburger" id="hamburgerBtn">
-                    <i class="fas fa-bars"></i>
-                </button>
-                <div class="page-title">
-                    <h1>Assessment Results</h1>
-                    <p>View and analyze student performance</p>
-                </div>
-            </div>
-            <div class="header-right">
-                <button class="btn-primary" onclick="Results.exportResults()">
-                    <i class="fas fa-download"></i> Export Results
-                </button>
-                <div class="admin-profile">
-                    <div class="avatar" id="adminAvatar">A</div>
-                    <div class="admin-info">
-                        <div class="name" id="adminName">Admin</div>
-                        <div class="role" id="adminRole">Super Admin</div>
-                    </div>
-                    <i class="fas fa-chevron-down chevron"></i>
-                </div>
-            </div>
-        </header>
-
-        <!-- Content Area -->
-        <div class="content-area" id="pageContent">
-            <!-- Page content loaded dynamically -->
-        </div>
+  <main class="page">
+    <div class="page-head"><div><h1>Results & marking</h1><p id="sub">Mark written answers, release results and spot problems.</p></div>
+      <div class="row"><button class="btn ghost" id="exportBtn"></button><button class="btn ghost" id="regradeBtn"></button><button class="btn primary" id="releaseBtn"></button></div></div>
+    <div class="toolbar"><select class="input" id="pick" aria-label="Assessment"></select></div>
+    <div class="tabbar" role="tablist" id="tabs">
+      <button role="tab" data-view="results" aria-selected="true">Results</button>
+      <button role="tab" data-view="queue" aria-selected="false">Marking queue <span class="badge amber" id="qCount" hidden></span></button>
+      <button role="tab" data-view="analysis" aria-selected="false">Question analysis</button>
+      <button role="tab" data-view="live" aria-selected="false">Live <span class="dot live" id="liveDot" hidden></span></button>
     </div>
+    <div id="view"><div class="card skeleton" style="height:160px"></div></div>
+  </main>
 
-    <!-- ===== TOAST ===== -->
-    <div id="toast" class="toast">
-        <i class="fas fa-check-circle"></i>
-        <span id="toastMessage">Success!</span>
-    </div>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="../shared/config.js"></script>
+  <script src="../shared/core.js"></script>
+  <script src="../shared/grading.js"></script>
+  <script src="../shared/integrity.js"></script>
+  <script src="../shared/admin.js"></script>
+  <script>
+    (async function () {
+      var me = await DBI.requireAdmin();
+      DBI.adminShell('results', me);
+      var esc = DBI.esc, icon = DBI.icon, G = window.DBIGrading, LABELS = window.DBIIntegrity.LABELS;
+      var params = new URLSearchParams(location.search);
+      var view = params.get('view') || 'results';
+      var assessments = [], current = null, attempts = [], questions = [], keys = {}, unsubLive = null;
+      var filter = { term: '', status: '' };
 
-    <!-- ===== MODAL ===== -->
-    <div class="modal-overlay" id="modalOverlay">
-        <div class="modal">
-            <div class="modal-header">
-                <h3 id="modalTitle">Modal</h3>
-                <button class="close-modal" onclick="closeModal()">&times;</button>
-            </div>
-            <div class="modal-body" id="modalBody">
-                <!-- Dynamic content -->
-            </div>
-        </div>
-    </div>
+      document.getElementById('exportBtn').innerHTML = icon('download') + 'Export CSV';
+      document.getElementById('regradeBtn').innerHTML = icon('refresh') + 'Regrade all';
+      document.getElementById('releaseBtn').innerHTML = icon('eye') + 'Release results';
 
-    <!-- ============================================================
-    JAVASCRIPT
-    ============================================================ -->
-    <script src="js/results.js"></script>
-    
-    <script>
-        // ============================================================
-        // FIREBASE CONFIGURATION
-        // ============================================================
+      function ms(v) {
+        if (!v) return 0;
+        if (v.toMillis) return v.toMillis();
+        var n = Date.parse(v);
+        return isNaN(n) ? 0 : n;
+      }
+      function pct(n) { return Math.round(n * 100) + '%'; }
+      function qById(id) { return questions.filter(function (q) { return q.id === id; })[0]; }
+      function nameOf(a) { return a.studentName || ((a.studentFirstName || '') + ' ' + (a.studentLastName || '')).trim() || a.studentId || 'Student'; }
+      function isPending(a) { return a.status === 'submitted' && a.gradingStatus === 'pending-review'; }
+      function flagged(a) { return a.integrity && (a.integrity.count > 0 || a.integrity.locked); }
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyCdrmMMmZ0xdC2A_GXdAcWnUAa1i6QbjwQ",
-            authDomain: "dbi-assess.firebaseapp.com",
-            projectId: "dbi-assess",
-            storageBucket: "dbi-assess.firebasestorage.app",
-            messagingSenderId: "558455201415",
-            appId: "1:558455201415:web:4a12a7b7c4cff9ecb6a222",
-            measurementId: "G-FE2BPSJ4C5"
+      // ---------------------------------------------------------------- loading
+      async function init() {
+        assessments = await DBI.loadAssessments();
+        var pick = document.getElementById('pick');
+        if (!assessments.length) {
+          document.getElementById('view').innerHTML = '<div class="card empty">' + icon('chart') + '<p>No assessments yet.</p></div>';
+          return;
+        }
+        var want = params.get('a');
+        var openAttempt = params.get('attempt');
+        if (!want && openAttempt) {
+          var s = await DBI.db.collection('studentResults').doc(openAttempt).get();
+          if (s.exists) want = s.data().assessmentId;
+        }
+        if (!want) {
+          var p = await DBI.db.collection('studentResults').where('gradingStatus', '==', 'pending-review').limit(1).get();
+          want = p.empty ? assessments[0].id : p.docs[0].data().assessmentId;
+        }
+        pick.innerHTML = assessments.map(function (a) { return '<option value="' + esc(a.id) + '"' + (a.id === want ? ' selected' : '') + '>' + esc(a.title || 'Untitled') + '</option>'; }).join('');
+        pick.onchange = function () { setParam('a', pick.value); load(); };
+        await load();
+        if (openAttempt) openPanel(openAttempt);
+      }
+      function setParam(k, v) {
+        var p = new URLSearchParams(location.search);
+        if (v) p.set(k, v);
+        else p.delete(k);
+        history.replaceState(null, '', '?' + p.toString());
+      }
+
+      async function load() {
+        current = assessments.filter(function (a) { return a.id === document.getElementById('pick').value; })[0];
+        var res = await Promise.all([
+          DBI.db.collection('studentResults').where('assessmentId', '==', current.id).get(),
+          DBI.db.collection('questions').where('assessmentId', '==', current.id).get(),
+        ]);
+        attempts = res[0].docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); }).sort(function (a, b) { return ms(b.submittedAt || b.startedAt) - ms(a.submittedAt || a.startedAt); });
+        var qdocs = res[1].docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); }).sort(function (a, b) { return (Number(a.order) || 0) - (Number(b.order) || 0); });
+        var kd = await Promise.all(qdocs.map(function (d) { return DBI.db.collection('questionKeys').doc(d.id).get(); }));
+        questions = [];
+        keys = {};
+        qdocs.forEach(function (d, i) {
+          var n = G.normalizeQuestion(d, kd[i].exists ? kd[i].data() : null);
+          n.question.id = d.id;
+          n.question.archived = !!d.archived;
+          questions.push(n.question);
+          keys[d.id] = n.key;
+        });
+        var pend = attempts.filter(isPending).reduce(function (s, a) { return s + ((a.grading && a.grading.pendingCount) || 0); }, 0);
+        var qc = document.getElementById('qCount');
+        qc.hidden = !pend;
+        qc.textContent = pend;
+        var subs = attempts.filter(function (a) { return a.status === 'submitted'; });
+        var graded = subs.filter(function (a) { return a.gradingStatus !== 'pending-review'; });
+        var avg = graded.length ? Math.round(graded.reduce(function (s, a) { return s + (Number(a.score) || 0); }, 0) / graded.length) : null;
+        document.getElementById('sub').textContent = subs.length + ' submitted · ' + attempts.filter(function (a) { return a.status === 'in-progress'; }).length + ' in progress' + (avg !== null ? ' · average ' + avg + '%' : '') + (pend ? ' · ' + pend + ' answers to mark' : '');
+        show(view);
+      }
+
+      document.getElementById('tabs').addEventListener('click', function (e) {
+        var b = e.target.closest('[data-view]');
+        if (b) show(b.dataset.view);
+      });
+      function show(v) {
+        view = v;
+        setParam('view', v === 'results' ? '' : v);
+        document.querySelectorAll('#tabs [data-view]').forEach(function (b) { b.setAttribute('aria-selected', b.dataset.view === v); });
+        if (unsubLive && v !== 'live') {
+          unsubLive();
+          unsubLive = null;
+          document.getElementById('liveDot').hidden = true;
+        }
+        if (v === 'results') drawResults();
+        if (v === 'queue') drawQueue();
+        if (v === 'analysis') drawAnalysis();
+        if (v === 'live') drawLive();
+      }
+
+      // ---------------------------------------------------------------- results table
+      function scoreCell(a) {
+        if (a.status === 'in-progress') return '<span class="badge blue">In progress</span>';
+        if (a.status === 'void') return '<span class="badge">Void</span>';
+        if (isPending(a)) return '<span class="badge amber">To mark (' + ((a.grading && a.grading.pendingCount) || '?') + ')</span>';
+        return '<b>' + esc(a.score) + '%</b> ' + (a.passed ? '<span class="badge green">Pass</span>' : '<span class="badge red">Below pass</span>');
+      }
+      function drawResults() {
+        var box = document.getElementById('view');
+        var rows = attempts.filter(function (a) {
+          var t = filter.term;
+          if (t && (nameOf(a) + ' ' + (a.studentId || '')).toLowerCase().indexOf(t) === -1) return false;
+          if (filter.status === 'mark') return isPending(a);
+          if (filter.status === 'flagged') return flagged(a);
+          if (filter.status === 'unreleased') return a.status === 'submitted' && !a.released;
+          if (filter.status === 'progress') return a.status === 'in-progress';
+          return true;
+        });
+        box.innerHTML = '<div class="toolbar"><input class="input" id="term" type="search" placeholder="Search student name or ID" value="' + esc(filter.term) + '">' +
+          '<select class="input" id="sf" style="max-width:220px">' + [['', 'All attempts'], ['mark', 'Needs marking'], ['flagged', 'Integrity alerts'], ['unreleased', 'Not yet released'], ['progress', 'In progress']].map(function (o) { return '<option value="' + o[0] + '"' + (filter.status === o[0] ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select></div>' +
+          (rows.length ? '<div class="table-wrap"><table class="table"><thead><tr><th>Student</th><th>Score</th><th>Released</th><th>Alerts</th><th>Submitted</th><th>Time</th></tr></thead><tbody>' + rows.map(function (a) {
+            var n = a.integrity ? a.integrity.count : 0;
+            return '<tr data-open="' + esc(a.id) + '" style="cursor:pointer"><td><a href="#" data-open="' + esc(a.id) + '"><b>' + esc(nameOf(a)) + '</b></a><div class="muted small">' + esc(a.studentId || '') + (a.attemptNumber > 1 ? ' · attempt ' + esc(a.attemptNumber) : '') + (a.version !== 2 ? ' · old system' : '') + '</div></td>' +
+              '<td>' + scoreCell(a) + '</td><td>' + (a.status === 'submitted' ? (a.released ? icon('check') + '<span class="sr-only">Yes</span>' : '<span class="muted small">No</span>') : '—') + '</td>' +
+              '<td>' + (a.integrity && a.integrity.locked ? '<span class="badge red">Paused</span>' : n ? '<span class="badge amber">' + n + '</span>' : '—') + '</td>' +
+              '<td class="small">' + esc(DBI.fmtDate(a.submittedAt, true)) + (a.offlineSubmit ? ' <span title="Submitted offline, uploaded later">' + icon('wifiOff') + '</span>' : '') + (a.submitReason && a.submitReason !== 'student' ? '<div class="muted">' + esc({ timeout: 'Time ran out', integrity: 'Auto-submitted (alerts)', admin: 'Submitted by admin' }[a.submitReason] || a.submitReason) + '</div>' : '') + '</td>' +
+              '<td class="small">' + (a.timeTaken ? esc(DBI.fmtDuration(a.timeTaken)) : '—') + '</td></tr>';
+          }).join('') + '</tbody></table></div>' : '<div class="card empty">' + icon('chart') + '<p>' + (attempts.length ? 'No attempts match.' : 'No one has taken this assessment yet.') + '</p></div>');
+        box.querySelector('#term').addEventListener('input', function (e) {
+          filter.term = e.target.value.trim().toLowerCase();
+          var pos = e.target.selectionStart;
+          drawResults();
+          var t = document.getElementById('term');
+          t.focus();
+          t.setSelectionRange(pos, pos);
+        });
+        box.querySelector('#sf').addEventListener('change', function (e) { filter.status = e.target.value; drawResults(); });
+      }
+      document.getElementById('view').addEventListener('click', function (e) {
+        var o = e.target.closest('[data-open]');
+        if (o && view !== 'queue') {
+          e.preventDefault();
+          openPanel(o.dataset.open);
+        }
+      });
+
+      // ---------------------------------------------------------------- answer display
+      function fmtAnswer(q, a) {
+        if (G.isBlank(a)) return '<span class="muted">No answer</span>';
+        var opt = function (id) {
+          var i = (q.options || []).map(function (o) { return o.id; }).indexOf(id);
+          return i === -1 ? esc(id) : String.fromCharCode(65 + i) + '. ' + esc(q.options[i].text);
         };
+        switch (q.type) {
+          case 'multiple-choice':
+          case 'multiple-select':
+            return [].concat(a).map(opt).join('<br>');
+          case 'true-false':
+            return a === true || a === 'true' ? 'True' : 'False';
+          case 'fill-blank':
+            return [].concat(a).map(function (x, i) { return 'Blank ' + (i + 1) + ': <b>' + esc(x) + '</b>'; }).join('<br>');
+          case 'matching':
+            return (q.prompts || []).map(function (p) {
+              var c = (q.choices || []).filter(function (c) { return c.id === a[p.id]; })[0];
+              return esc(p.text) + ' → <b>' + esc(c ? c.text : '—') + '</b>';
+            }).join('<br>');
+          case 'ordering':
+            return [].concat(a).map(function (id, i) { var it = (q.items || []).filter(function (x) { return x.id === id; })[0]; return (i + 1) + '. ' + esc(it ? it.text : id); }).join('<br>');
+          case 'file-upload':
+            return a && a.url && /^https:\/\//.test(a.url) ? '<a href="' + esc(a.url) + '" target="_blank" rel="noopener">' + icon('download') + ' ' + esc(a.name || 'Open file') + '</a>' + (/\.(png|jpe?g|webp|gif)$/i.test(a.url) ? '<img src="' + esc(a.url) + '" alt="" style="display:block;max-width:100%;max-height:360px;margin-top:8px;border-radius:8px">' : '') : '<span class="muted">No file</span>';
+          default:
+            return esc(typeof a === 'object' ? JSON.stringify(a) : a);
+        }
+      }
+      function fmtKey(q, k) {
+        switch (q.type) {
+          case 'multiple-choice':
+          case 'multiple-select':
+            return fmtAnswer(q, k.correct || []);
+          case 'true-false':
+            return k.correct === true ? 'True' : k.correct === false ? 'False' : '—';
+          case 'fill-blank':
+            return (k.blanks || []).map(function (b, i) { return 'Blank ' + (i + 1) + ': ' + esc((b.accepted || []).join(' / ')); }).join('<br>');
+          case 'short-answer':
+            return k.manual ? '' : esc((k.accepted || []).join(' / '));
+          case 'numeric':
+            return k.min !== undefined ? esc(k.min + ' to ' + k.max) : esc(k.value + (Number(k.tolerance) ? ' ± ' + k.tolerance : '') + (q.unit ? ' ' + q.unit : ''));
+          case 'matching':
+            return fmtAnswer(q, k.pairs || {});
+          case 'ordering':
+            return fmtAnswer(q, k.order || []);
+          default:
+            return '';
+        }
+      }
+      var STATUS = { correct: ['green', 'Correct'], partial: ['amber', 'Part marks'], incorrect: ['red', 'Wrong'], unanswered: ['', 'Blank'], pending: ['amber', 'To mark'] };
 
-        let db = null;
-        let currentUser = null;
+      function markBox(q, item, mark, prefix) {
+        var max = q.points;
+        var val = mark ? mark.score : item && item.status !== 'pending' ? item.score : '';
+        var steps = [];
+        for (var s = 0; s <= max; s += max > 5 ? Math.ceil(max / 5) : max <= 2 ? 0.5 : 1) steps.push(s);
+        if (steps[steps.length - 1] !== max) steps.push(max);
+        return '<div class="markbox"><label class="field" style="margin:0"><span class="small">Mark (out of ' + esc(max) + ')</span><input class="input" type="number" step="0.5" min="0" max="' + esc(max) + '" data-mark="' + esc(prefix) + '" value="' + esc(val) + '"><div class="quick">' + steps.map(function (s) { return '<button type="button" class="btn ghost sm" data-quick="' + s + '">' + s + '</button>'; }).join('') + '</div></label>' +
+          '<label class="field" style="margin:0"><span class="small">Comment for the student (optional)</span><textarea class="input" rows="2" data-comment="' + esc(prefix) + '">' + esc(mark ? mark.comment : '') + '</textarea></label></div>';
+      }
+      function wireQuick(root) {
+        root.addEventListener('click', function (e) {
+          var b = e.target.closest('[data-quick]');
+          if (!b) return;
+          var inp = b.closest('.markbox').querySelector('[data-mark]');
+          inp.value = b.dataset.quick;
+          inp.dispatchEvent(new Event('input', { bubbles: true }));
+        });
+      }
 
+      // ---------------------------------------------------------------- attempt panel
+      async function openPanel(id) {
+        setParam('attempt', id);
+        var wrap = document.createElement('div');
+        wrap.className = 'panel-wrap';
+        wrap.innerHTML = '<aside class="panel" role="dialog" aria-modal="true" aria-label="Attempt"><div class="panel-head"><button class="icon-btn" data-close aria-label="Close">' + icon('x') + '</button><b id="pTitle">Loading…</b></div><div class="panel-body" id="pBody"><div class="card skeleton" style="height:200px"></div></div></aside>';
+        document.body.appendChild(wrap);
+        function close() {
+          wrap.remove();
+          setParam('attempt', '');
+          document.removeEventListener('keydown', onKey);
+        }
+        function onKey(e) { if (e.key === 'Escape') close(); }
+        document.addEventListener('keydown', onKey);
+        wrap.addEventListener('click', function (e) { if (e.target === wrap || e.target.closest('[data-close]')) close(); });
+        var body = wrap.querySelector('#pBody');
+        var data;
         try {
-            firebase.initializeApp(firebaseConfig);
-            db = firebase.firestore();
-            console.log('✅ Firebase initialized successfully');
-        } catch (error) {
-            console.error('❌ Firebase initialization error:', error);
+          data = await DBI.api('GET', '/admin/attempts/' + encodeURIComponent(id));
+        } catch (e) {
+          body.innerHTML = '<div class="alert error">' + esc(e.message) + '</div>';
+          return;
         }
+        var a = data.attempt;
+        a.id = a.id || id;
+        wrap.querySelector('#pTitle').textContent = nameOf(a) + ' · ' + (a.assessmentTitle || '');
+        if (data.legacy) {
+          body.innerHTML = '<div class="card"><p>This attempt was recorded by the old system. Score: <b>' + esc(a.score != null ? a.score + '%' : '—') + '</b></p><p class="muted small">Old attempts stored answers in a format that cannot be re-marked reliably.</p></div>';
+          return;
+        }
+        var deadline = a.deadline ? ms(a.deadline) + (Number(a.extraSeconds) || 0) * 1000 : 0;
+        var ev = (a.integrity && a.integrity.events) || [];
+        var byType = (a.integrity && a.integrity.byType) || {};
+        var ips = a.ips || [];
+        var head =
+          '<div class="card"><div class="row" style="justify-content:space-between;align-items:flex-start"><div><div class="muted small">' + esc(a.studentId) + ' · attempt ' + esc(a.attemptNumber || 1) + '</div><div style="font-size:1.8rem;font-weight:800">' + (a.status === 'in-progress' ? 'In progress' : isPending(a) ? 'To mark' : esc(a.score) + '%') + '</div>' +
+          '<div class="small">' + (a.status === 'submitted' ? esc(a.earnedPoints) + ' / ' + esc(a.totalPoints) + ' marks · ' + (a.released ? '<span class="badge green">Released to student</span>' : '<span class="badge">Not released</span>') : a.status === 'void' ? '<span class="badge red">Void</span> ' + esc(a.voidReason || '') : deadline ? 'Time left: ' + esc(DBI.fmtDuration(Math.max(0, Math.round((deadline - Date.now()) / 1000)))) : '') + '</div></div>' +
+          '<div class="row" id="pActs"></div></div>' +
+          '<dl class="kv" style="margin-top:12px"><dt>Started</dt><dd>' + esc(DBI.fmtDate(a.startedAt, true)) + '</dd><dt>Submitted</dt><dd>' + esc(DBI.fmtDate(a.submittedAt, true)) + (a.offlineSubmit ? ' (finished offline' + (a.sealedAt ? ' at ' + esc(DBI.fmtDate(a.sealedAt, true)) : '') + ')' : '') + (a.lateSync ? ' <span class="badge amber">Late upload</span>' : '') + '</dd>' +
+          '<dt>Time taken</dt><dd>' + (a.timeTaken ? esc(DBI.fmtDuration(a.timeTaken)) : '—') + '</dd><dt>Devices / networks</dt><dd>' + esc(ips.length) + ' IP address' + (ips.length === 1 ? '' : 'es') + (byType['device-change'] ? ' · moved device ' + byType['device-change'] + '×' : '') + '</dd></dl></div>';
 
-        // ============================================================
-        // AUTHENTICATION CHECK
-        // ============================================================
+        var integ = '<div class="card" style="margin-top:12px"><h2 style="font-size:1.05rem">Integrity log ' + (a.integrity && a.integrity.locked ? '<span class="badge red">Paused</span>' : '') + '</h2>' +
+          (Object.keys(byType).length ? '<div class="chip-list" style="margin:8px 0">' + Object.keys(byType).map(function (t) { return '<span class="badge ' + (['online', 'resume', 'offline'].indexOf(t) !== -1 ? '' : 'amber') + '">' + esc(LABELS[t] || t) + ' × ' + esc(byType[t]) + '</span>'; }).join('') + '</div>' : '<p class="muted small">Nothing unusual was recorded.</p>') +
+          (ev.length ? '<details><summary class="small">Show all ' + ev.length + ' events</summary><ul class="timeline">' + ev.slice().sort(function (x, y) { return ms(x.at) - ms(y.at); }).map(function (e) {
+            var qi = e.q ? a.questionIds.indexOf(e.q) : -1;
+            return '<li><time>' + esc(new Date(ms(e.at)).toLocaleTimeString('en-GB')) + '</time><span>' + esc(LABELS[e.type] || e.type) + (qi !== -1 ? ' · Q' + (qi + 1) : '') + (e.detail ? ' <span class="muted">' + esc(e.detail) + '</span>' : '') + '</span></li>';
+          }).join('') + '</ul></details>' : '') + '<p class="hint">Phones lose focus for calls and notifications. Look at how long and how often before deciding.</p></div>';
 
-        firebase.auth().onAuthStateChanged(async (user) => {
-            if (user) {
-                currentUser = user;
-                console.log('✅ User logged in:', user.email || user.uid);
-                
-                try {
-                    const adminDoc = await db.collection('admins').doc(user.uid).get();
-                    if (adminDoc.exists) {
-                        const adminData = adminDoc.data();
-                        document.getElementById('adminName').textContent = adminData.name || user.email;
-                        document.getElementById('adminRole').textContent = adminData.role || 'Super Admin';
-                        document.getElementById('adminAvatar').textContent = (adminData.name || 'A').charAt(0).toUpperCase();
-                        
-                        // Initialize Results module
-                        const container = document.getElementById('pageContent');
-                        if (typeof Results !== 'undefined') {
-                            Results.render(container, { db: db });
-                        }
-                    } else {
-                        showToast('You are not an admin', true);
-                        setTimeout(() => {
-                            window.location.href = 'index.html';
-                        }, 2000);
-                    }
-                } catch (error) {
-                    console.error('Admin check error:', error);
-                    showToast('Error verifying admin status', true);
-                }
-            } else {
-                console.log('⚠️ No user logged in');
-                // window.location.href = 'index.html';
-            }
+        // Show questions in the assessment's order (each student saw their own shuffled order).
+        var order = questions.map(function (q) { return q.id; });
+        (data.questions || []).sort(function (x, y) { return order.indexOf(x.question.id) - order.indexOf(y.question.id); });
+        var items = (data.questions || []).map(function (row, i) {
+          var q = row.question, k = row.key || {};
+          var item = (a.grading && a.grading.items && a.grading.items[q.id]) || (a.status === 'in-progress' ? null : { status: 'unanswered', score: 0, max: q.points });
+          var mark = (a.manualMarks || {})[q.id];
+          var st = item ? STATUS[item.status] || ['', item.status] : ['blue', 'Not submitted'];
+          var keyHtml = fmtKey(q, k);
+          var manual = item && (item.status === 'pending' || G.MANUAL_TYPES.indexOf(q.type) !== -1 || mark);
+          return '<div class="item' + (item && item.status === 'pending' ? ' pending' : '') + '" data-q="' + esc(q.id) + '"><div class="row" style="justify-content:space-between"><h3>Q' + (i + 1) + '. <span class="badge ' + st[0] + '">' + st[1] + '</span></h3><span class="small muted">' + (item ? esc(item.score) + ' / ' + esc(item.max) : esc(q.points) + ' marks') + (mark ? ' · marked by ' + esc(mark.by || 'teacher') : '') + '</span></div>' +
+            '<div class="small" style="margin-bottom:8px">' + DBI.rich(q.text) + '</div>' +
+            '<div class="small muted">Student’s answer</div><div class="ans' + (q.type === 'code' ? ' code' : '') + '">' + fmtAnswer(q, (a.answers || {})[q.id]) + '</div>' +
+            (keyHtml ? '<div class="small" style="margin-top:6px"><span class="muted">Correct:</span> ' + keyHtml + '</div>' : '') +
+            (k.rubric ? '<details class="small" style="margin-top:6px"><summary>Marking guide</summary><div class="ans">' + esc(k.rubric) + '</div></details>' : '') +
+            (k.sampleAnswer ? '<details class="small"><summary>Model answer</summary><div class="ans' + (q.type === 'code' ? ' code' : '') + '">' + esc(k.sampleAnswer) + '</div></details>' : '') +
+            (a.status === 'in-progress' ? '' : manual ? markBox(q, item, mark, q.id) : '<button type="button" class="btn ghost sm" data-override="' + esc(q.id) + '" style="margin-top:8px">' + icon('edit') + 'Change mark</button>') + '</div>';
+        }).join('');
+
+        body.innerHTML = head + integ + '<h2 style="font-size:1.05rem;margin:18px 0 10px">Answers</h2>' + items +
+          (a.status === 'submitted' ? '<div class="card" style="position:sticky;bottom:0;display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end"><label class="check" style="margin-right:auto"><input type="checkbox" id="pRelease"' + (a.released || ['end', 'per-question'].indexOf(data.policy.display) !== -1 ? ' checked' : '') + '><span>Release to the student when fully marked</span></label><button class="btn primary" id="pSave">' + icon('check') + 'Save marks</button></div>' : '');
+        wireQuick(body);
+
+        body.addEventListener('click', function (e) {
+          var o = e.target.closest('[data-override]');
+          if (!o) return;
+          var row = (data.questions || []).filter(function (r) { return r.question.id === o.dataset.override; })[0];
+          o.insertAdjacentHTML('afterend', markBox(row.question, a.grading.items[row.question.id], null, row.question.id));
+          o.remove();
         });
 
-        // ============================================================
-        // GLOBAL FUNCTIONS
-        // ============================================================
-
-        function closeSidebar() {
-            document.getElementById('sidebar').classList.remove('open');
-            document.getElementById('sidebarOverlay').classList.remove('show');
+        var acts = [];
+        if (a.status === 'in-progress') {
+          if (a.integrity && a.integrity.locked) acts.push(['unlock', 'Unlock', 'primary']);
+          acts.push(['extend', 'Add time', 'ghost'], ['force-submit', 'Submit now', 'ghost']);
         }
-
-        function closeModal() {
-            const overlay = document.getElementById('modalOverlay');
-            if (overlay) overlay.classList.remove('show');
-            document.body.style.overflow = '';
-        }
-
-        function showToast(message, isError = false) {
-            const toast = document.getElementById('toast');
-            const toastMessage = document.getElementById('toastMessage');
-            
-            toastMessage.textContent = message;
-            toast.className = 'toast';
-            if (isError) {
-                toast.classList.add('error');
-                toast.querySelector('i').className = 'fas fa-exclamation-circle';
-            } else {
-                toast.classList.add('success');
-                toast.querySelector('i').className = 'fas fa-check-circle';
-            }
-            toast.classList.add('show');
-            
-            clearTimeout(toast._timeout);
-            toast._timeout = setTimeout(() => {
-                toast.classList.remove('show');
-            }, 4000);
-        }
-
-        function handleLogout() {
-            if (confirm('Are you sure you want to logout?')) {
-                firebase.auth().signOut().then(() => {
-                    window.location.href = 'index.html';
-                }).catch(error => {
-                    showToast('Error logging out: ' + error.message, true);
-                });
-            }
-        }
-
-        // ============================================================
-        // EVENT LISTENERS
-        // ============================================================
-
-        document.addEventListener('DOMContentLoaded', () => {
-            // Hamburger menu
-            document.getElementById('hamburgerBtn').addEventListener('click', () => {
-                document.getElementById('sidebar').classList.toggle('open');
-                document.getElementById('sidebarOverlay').classList.toggle('show');
-            });
-
-            // Close sidebar on overlay click
-            document.getElementById('sidebarOverlay').addEventListener('click', closeSidebar);
-
-            // Close sidebar on window resize (desktop)
-            window.addEventListener('resize', () => {
-                if (window.innerWidth > 768) {
-                    document.getElementById('sidebar').classList.remove('open');
-                    document.getElementById('sidebarOverlay').classList.remove('show');
-                }
-            });
-
-            // Escape key to close modal
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape') {
-                    closeModal();
-                }
-            });
+        if (a.status === 'submitted') acts.push([a.released ? 'unrelease' : 'release', a.released ? 'Hide result' : 'Release result', 'ghost']);
+        if (a.status !== 'void') acts.push(['void', 'Void', 'ghost']);
+        else acts.push(['restore', 'Restore', 'ghost']);
+        var actBox = body.querySelector('#pActs');
+        actBox.innerHTML = acts.map(function (x) { return '<button class="btn ' + x[2] + ' sm" data-action="' + x[0] + '">' + x[1] + '</button>'; }).join('');
+        actBox.addEventListener('click', async function (e) {
+          var b = e.target.closest('[data-action]');
+          if (!b) return;
+          var act = b.dataset.action, payload = { action: act };
+          if (act === 'extend') {
+            var mins = await DBI.modal({ title: 'Add time', body: '<label class="field"><span>Extra minutes</span><input class="input" type="number" min="1" max="600" value="10" id="xm"></label>', actions: [{ label: 'Cancel', value: null }, { label: 'Add time', kind: 'primary', value: function (w) { return Number(w.querySelector('#xm').value); } }] });
+            if (!mins) return;
+            payload.minutes = mins;
+          }
+          if (act === 'void') {
+            var reason = await DBI.modal({ title: 'Void this attempt?', body: '<p>The attempt will not count and the student will not see a result.</p><label class="field"><span>Reason (kept in the audit log)</span><input class="input" id="vr"></label>', actions: [{ label: 'Cancel', value: null }, { label: 'Void', kind: 'danger', value: function (w) { return w.querySelector('#vr').value || 'No reason given'; } }] });
+            if (!reason) return;
+            payload.reason = reason;
+          }
+          if (act === 'force-submit' && !(await DBI.confirm('Submit this attempt now?', 'The student’s saved answers are marked straight away. Answers still on their device and not yet uploaded will be lost.', 'Submit now', true))) return;
+          DBI.busy(b, true, '…');
+          try {
+            await DBI.api('POST', '/admin/attempts/' + encodeURIComponent(id) + '/action', payload);
+            DBI.toast('Done', 'ok');
+            close();
+            await load();
+            openPanel(id);
+          } catch (err) {
+            DBI.toast(err.message, 'error');
+            DBI.busy(b, false);
+          }
         });
 
-        console.log('%c📊 DBI Assess Admin Panel', 'font-size: 20px; font-weight: bold; color: #166534;');
-        console.log('%c🔐 Results Management System v1.0', 'font-size: 14px; color: #22c55e;');
-        console.log('%c📚 View and analyze student performance', 'font-size: 14px; color: #6b7280;');
-    </script>
+        var save = body.querySelector('#pSave');
+        if (save)
+          save.onclick = async function () {
+            var marks = {};
+            var bad = false;
+            body.querySelectorAll('[data-mark]').forEach(function (inp) {
+              var qid = inp.dataset.mark;
+              if (inp.value === '') return;
+              var max = Number(inp.max);
+              var v = Number(inp.value);
+              if (isNaN(v) || v < 0 || v > max) {
+                inp.focus();
+                bad = true;
+              }
+              marks[qid] = { score: v, comment: body.querySelector('[data-comment="' + qid + '"]').value.trim() };
+            });
+            if (bad) return DBI.toast('Marks must be between 0 and the question’s maximum.', 'error');
+            if (!Object.keys(marks).length) return DBI.toast('Enter at least one mark.', 'error');
+            DBI.busy(save, true, 'Saving…');
+            try {
+              var r = await DBI.api('POST', '/admin/attempts/' + encodeURIComponent(id) + '/mark', { marks: marks, release: body.querySelector('#pRelease').checked ? undefined : false });
+              var left = r.attempt.grading.pendingCount;
+              DBI.toast(left ? 'Saved. ' + left + ' answer' + (left > 1 ? 's' : '') + ' still to mark.' : 'Saved. Score: ' + r.attempt.score + '%', 'ok');
+              if (!left && body.querySelector('#pRelease').checked && !r.attempt.released) await DBI.api('POST', '/admin/attempts/' + encodeURIComponent(id) + '/action', { action: 'release' });
+              close();
+              await load();
+            } catch (err) {
+              DBI.toast(err.message, 'error');
+              DBI.busy(save, false);
+            }
+          };
+      }
 
+      // ---------------------------------------------------------------- marking queue (one question at a time)
+      var hideNames = false;
+      function drawQueue() {
+        var box = document.getElementById('view');
+        var groups = questions.map(function (q) {
+          var list = attempts.filter(function (a) { return a.status === 'submitted' && a.grading && a.grading.items && a.grading.items[q.id] && a.grading.items[q.id].status === 'pending'; });
+          return { q: q, list: list };
+        }).filter(function (g) { return g.list.length; });
+        if (!groups.length) {
+          box.innerHTML = '<div class="card empty">' + icon('check') + '<p>Nothing to mark for this assessment.</p></div>';
+          return;
+        }
+        box.innerHTML = '<div class="toolbar"><label class="check"><input type="checkbox" id="anon"' + (hideNames ? ' checked' : '') + '><span>Hide student names while marking (fairer marking)</span></label></div>' + groups.map(function (g) {
+          var k = keys[g.q.id] || {};
+          var qn = questions.indexOf(g.q) + 1;
+          // Flag answers that are very similar to another student's answer to the same question.
+          var texts = g.list.map(function (a) { var v = a.answers[g.q.id]; return typeof v === 'string' ? v : ''; });
+          return '<section class="card" style="margin-bottom:16px" data-group="' + esc(g.q.id) + '"><div class="row" style="justify-content:space-between"><h2 style="font-size:1.05rem;margin:0">Q' + qn + ' · ' + esc(g.list.length) + ' to mark</h2><span class="badge blue">' + esc(g.q.points) + ' marks</span></div>' +
+            '<div style="margin:8px 0">' + DBI.rich(g.q.text) + '</div>' +
+            (k.rubric ? '<div class="alert small"><b>Guide:</b>&nbsp;' + esc(k.rubric) + '</div>' : '') +
+            (k.sampleAnswer ? '<details class="small" style="margin-top:6px"><summary>Model answer</summary><div class="ans">' + esc(k.sampleAnswer) + '</div></details>' : '') +
+            g.list.map(function (a, i) {
+              var sims = [];
+              texts.forEach(function (t, j) {
+                if (j === i || !texts[i] || !t) return;
+                var s = G.similarity(texts[i], t);
+                if (s >= 0.5) sims.push((hideNames ? 'Student ' + (j + 1) : nameOf(g.list[j])) + ' (' + Math.round(s * 100) + '%)');
+              });
+              return '<div class="item" data-attempt="' + esc(a.id) + '" style="margin-top:12px"><div class="row" style="justify-content:space-between"><b>' + esc(hideNames ? 'Student ' + (i + 1) : nameOf(a)) + '</b>' + (typeof a.answers[g.q.id] === 'string' ? '<span class="small muted">' + G.wordCount(a.answers[g.q.id]) + ' words</span>' : '') + '</div>' +
+                (sims.length ? '<div class="small sim">' + icon('alert') + ' Very similar to: ' + esc(sims.join(', ')) + '</div>' : '') +
+                '<div class="ans' + (g.q.type === 'code' ? ' code' : '') + '" style="margin-top:6px">' + fmtAnswer(g.q, a.answers[g.q.id]) + '</div>' + markBox(g.q, null, null, a.id) + '</div>';
+            }).join('') +
+            '<div class="row" style="justify-content:flex-end;margin-top:12px"><button class="btn primary" data-savegroup="' + esc(g.q.id) + '">' + icon('check') + 'Save marks for Q' + qn + '</button></div></section>';
+        }).join('');
+        wireQuick(box);
+        box.querySelector('#anon').onchange = function (e) { hideNames = e.target.checked; drawQueue(); };
+        box.querySelectorAll('[data-savegroup]').forEach(function (btn) {
+          btn.onclick = async function () {
+            var qid = btn.dataset.savegroup;
+            var sec = box.querySelector('[data-group="' + qid + '"]');
+            var q = qById(qid);
+            var jobs = [];
+            var bad = false;
+            sec.querySelectorAll('[data-attempt]').forEach(function (el) {
+              var v = el.querySelector('[data-mark]').value;
+              if (v === '') return;
+              var n = Number(v);
+              if (isNaN(n) || n < 0 || n > q.points) bad = true;
+              jobs.push({ id: el.dataset.attempt, mark: { score: n, comment: el.querySelector('[data-comment]').value.trim() } });
+            });
+            if (bad) return DBI.toast('Marks must be between 0 and ' + q.points + '.', 'error');
+            if (!jobs.length) return DBI.toast('Enter at least one mark.', 'error');
+            DBI.busy(btn, true, 'Saving ' + jobs.length + '…');
+            var failed = 0;
+            for (var i = 0; i < jobs.length; i++) {
+              var m = {};
+              m[qid] = jobs[i].mark;
+              try {
+                await DBI.api('POST', '/admin/attempts/' + encodeURIComponent(jobs[i].id) + '/mark', { marks: m }, { retries: 2 });
+              } catch (e) {
+                failed++;
+              }
+            }
+            DBI.toast(failed ? failed + ' could not be saved. Try again.' : 'Saved ' + jobs.length + ' mark' + (jobs.length === 1 ? '' : 's'), failed ? 'error' : 'ok');
+            await load();
+          };
+        });
+      }
+
+      // ---------------------------------------------------------------- question analysis
+      function drawAnalysis() {
+        var box = document.getElementById('view');
+        var done = attempts.filter(function (a) { return a.status === 'submitted' && a.version === 2; });
+        if (done.length < 1) {
+          box.innerHTML = '<div class="card empty">' + icon('chart') + '<p>Analysis appears once students have submitted.</p></div>';
+          return;
+        }
+        var scores = done.filter(function (a) { return a.gradingStatus !== 'pending-review'; }).map(function (a) { return Number(a.score) || 0; });
+        var buckets = [0, 0, 0, 0, 0];
+        scores.forEach(function (s) { buckets[Math.min(4, Math.floor(s / 20))]++; });
+        var maxB = Math.max.apply(null, buckets.concat(1));
+        var passRate = scores.length ? scores.filter(function (s) { return s >= (Number(current.passingScore) || 50); }).length / scores.length : 0;
+        var html = '<div class="grid cols-2"><div class="card"><h2 style="font-size:1.05rem">Score spread</h2>' + ['0–19', '20–39', '40–59', '60–79', '80–100'].map(function (l, i) {
+          return '<div class="opt-bar" style="grid-template-columns:60px 1fr 40px"><span>' + l + '%</span><div class="bar"><i style="width:' + (buckets[i] / maxB) * 100 + '%"></i></div><span>' + buckets[i] + '</span></div>';
+        }).join('') + '</div><div class="card"><h2 style="font-size:1.05rem">Summary</h2><dl class="kv"><dt>Marked attempts</dt><dd>' + scores.length + '</dd><dt>Pass rate</dt><dd>' + pct(passRate) + '</dd><dt>Highest</dt><dd>' + (scores.length ? Math.max.apply(null, scores) + '%' : '—') + '</dd><dt>Lowest</dt><dd>' + (scores.length ? Math.min.apply(null, scores) + '%' : '—') + '</dd></dl>' +
+          '<p class="hint" style="margin-top:10px"><b>Difficulty</b> is the share of marks students earned. <b>Discrimination</b> compares the top and bottom groups: a question the strong students get wrong more often than weak students usually has a wrong key or a confusing wording.</p></div></div>';
+        html += questions.filter(function (q) { return !q.archived; }).map(function (q, i) {
+          var rows = done.filter(function (a) { return (a.questionIds || []).indexOf(q.id) !== -1; }).map(function (a) { return { total: Number(a.score) || 0, item: a.grading && a.grading.items[q.id], answer: (a.answers || {})[q.id] }; });
+          var s = G.itemAnalysis(q, rows);
+          if (!s.n) return '<div class="card" style="margin-top:12px"><b>Q' + (i + 1) + '.</b> ' + esc(q.text.slice(0, 120)) + ' <span class="muted small">— no marked answers yet</span></div>';
+          var d = s.discrimination;
+          var dl = d === null ? ['', 'Not enough data'] : d < 0 ? ['red', 'Check the key'] : d < 0.1 ? ['amber', 'Weak'] : d < 0.3 ? ['blue', 'Fair'] : ['green', 'Good'];
+          var diff = s.facility >= 0.85 ? 'Very easy' : s.facility >= 0.6 ? 'Easy' : s.facility >= 0.35 ? 'Medium' : s.facility >= 0.15 ? 'Hard' : 'Very hard';
+          var k = keys[q.id] || {};
+          var opts = s.options ? '<div style="margin-top:8px">' + q.options.map(function (o, j) {
+            var c = s.options[o.id] || 0;
+            var right = (k.correct || []).indexOf(o.id) !== -1;
+            return '<div class="opt-bar"><b>' + String.fromCharCode(65 + j) + '</b><div><div class="small" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(o.text) + (right ? ' ' + icon('check') : '') + '</div><div class="bar"><i class="' + (right ? 'right' : '') + '" style="width:' + (c / s.n) * 100 + '%"></i></div></div><span class="small">' + c + ' (' + pct(c / s.n) + ')</span></div>';
+          }).join('') + '</div>' : '';
+          return '<div class="card" style="margin-top:12px"><div class="row" style="justify-content:space-between;align-items:flex-start"><div style="flex:1;min-width:0"><b>Q' + (i + 1) + '.</b> ' + DBI.rich(q.text.length > 200 ? q.text.slice(0, 200) + '…' : q.text) + '</div><a class="btn ghost sm" href="questions.html?a=' + encodeURIComponent(current.id) + '">' + icon('edit') + 'Edit</a></div>' +
+            '<div class="row small" style="margin-top:8px"><span>Difficulty: <b>' + diff + '</b> (' + pct(s.facility) + ' of marks earned)</span><span>Discrimination: <span class="badge ' + dl[0] + '">' + dl[1] + (d !== null ? ' ' + d.toFixed(2) : '') + '</span></span><span class="muted">' + s.n + ' answers · ' + s.unanswered + ' blank</span></div>' + opts + '</div>';
+        }).join('');
+        box.innerHTML = html;
+      }
+
+      // ---------------------------------------------------------------- live monitor
+      function drawLive() {
+        var box = document.getElementById('view');
+        box.innerHTML = '<div class="card skeleton" style="height:120px"></div>';
+        if (unsubLive) unsubLive();
+        unsubLive = DBI.db.collection('studentResults').where('assessmentId', '==', current.id).where('status', '==', 'in-progress').onSnapshot(function (snap) {
+          document.getElementById('liveDot').hidden = snap.empty;
+          var list = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); }).sort(function (a, b) { return nameOf(a).localeCompare(nameOf(b)); });
+          if (!list.length) {
+            box.innerHTML = '<div class="card empty">' + icon('play') + '<p>No one is taking this assessment right now. This page updates by itself.</p></div>';
+            return;
+          }
+          var now = Date.now();
+          box.innerHTML = '<p class="small muted">' + list.length + ' student' + (list.length === 1 ? '' : 's') + ' in the test. Updates automatically. Students who lose internet keep working and show as “offline”.</p><div class="table-wrap"><table class="table"><thead><tr><th>Student</th><th>Progress</th><th>Time left</th><th>Connection</th><th>Alerts</th></tr></thead><tbody>' + list.map(function (a) {
+            var seen = now - ms(a.lastSeenAt);
+            var dot = seen < 90000 ? ['live', 'Online'] : seen < 300000 ? ['idle', 'Quiet ' + Math.round(seen / 60000) + ' min'] : ['off', 'Offline ' + Math.round(seen / 60000) + ' min'];
+            var answered = Object.keys(a.answers || {}).filter(function (k) { return !G.isBlank(a.answers[k]); }).length;
+            var total = a.totalQuestions || (a.questionIds || []).length || 1;
+            var deadline = a.deadline ? ms(a.deadline) + (Number(a.extraSeconds) || 0) * 1000 : 0;
+            var n = a.integrity ? a.integrity.count : 0;
+            return '<tr data-open="' + esc(a.id) + '" style="cursor:pointer"><td><a href="#" data-open="' + esc(a.id) + '"><b>' + esc(nameOf(a)) + '</b></a><div class="muted small">' + esc(a.studentId) + '</div></td>' +
+              '<td style="min-width:140px"><div class="bar"><i style="width:' + (answered / total) * 100 + '%"></i></div><span class="small">' + answered + ' / ' + total + '</span></td>' +
+              '<td class="small">' + (deadline ? esc(DBI.fmtDuration(Math.max(0, Math.round((deadline - now) / 1000)))) : '—') + '</td>' +
+              '<td class="small"><span class="dot ' + dot[0] + '"></span> ' + dot[1] + '</td>' +
+              '<td>' + (a.integrity && a.integrity.locked ? '<span class="badge red">Paused</span>' : n ? '<span class="badge amber">' + n + '</span>' : '<span class="badge green">OK</span>') + '</td></tr>';
+          }).join('') + '</tbody></table></div>';
+        }, function (e) {
+          box.innerHTML = '<div class="alert error">' + esc(e.message) + '</div>';
+        });
+      }
+
+      // ---------------------------------------------------------------- bulk actions
+      document.getElementById('regradeBtn').onclick = async function () {
+        if (!current) return;
+        if (!(await DBI.confirm('Regrade every submitted attempt?', 'Use this after fixing an answer key. Teacher marks are kept. Scores and certificates update.', 'Regrade'))) return;
+        var b = this;
+        DBI.busy(b, true, 'Regrading…');
+        try {
+          var r = await DBI.api('POST', '/admin/assessments/' + encodeURIComponent(current.id) + '/regrade', {}, { timeout: 120000 });
+          DBI.toast('Regraded ' + r.attempts + ' attempts · ' + r.changed + ' scores changed', 'ok', 6000);
+          await load();
+        } catch (e) {
+          DBI.toast(e.message, 'error');
+        }
+        DBI.busy(b, false);
+      };
+      document.getElementById('releaseBtn').onclick = async function () {
+        if (!current) return;
+        var ready = attempts.filter(function (a) { return a.status === 'submitted' && !a.released && a.gradingStatus !== 'pending-review' && a.version === 2; });
+        var waiting = attempts.filter(isPending).length;
+        if (!ready.length) return DBI.modal({ title: 'Nothing to release', body: '<p>' + (waiting ? waiting + ' attempt' + (waiting > 1 ? 's are' : ' is') + ' still waiting to be marked. Results are released once they are fully marked.' : 'All marked results have already been released.') + '</p>' });
+        if (!(await DBI.confirm('Release ' + ready.length + ' result' + (ready.length > 1 ? 's' : '') + '?', 'Students will see their score' + (current.showEndCorrect ? ' and the correct answers' : '') + '.' + (waiting ? ' ' + waiting + ' still need marking and stay hidden.' : ''), 'Release'))) return;
+        var b = this;
+        DBI.busy(b, true, 'Releasing…');
+        var failed = 0;
+        for (var i = 0; i < ready.length; i++) {
+          try {
+            await DBI.api('POST', '/admin/attempts/' + encodeURIComponent(ready[i].id) + '/action', { action: 'release' }, { retries: 2 });
+          } catch (e) {
+            failed++;
+          }
+        }
+        DBI.toast(failed ? failed + ' failed — try again' : 'Released ' + ready.length + ' results', failed ? 'error' : 'ok');
+        DBI.busy(b, false);
+        await load();
+      };
+      document.getElementById('exportBtn').onclick = function () {
+        if (!current) return;
+        var qs = questions.filter(function (q) { return !q.archived; });
+        var rows = [['Student ID', 'Name', 'Attempt', 'Status', 'Score %', 'Marks', 'Out of', 'Passed', 'Released', 'Started', 'Submitted', 'Time (min)', 'Alerts', 'Offline submit'].concat(qs.map(function (q, i) { return 'Q' + (i + 1) + ' (' + q.points + ')'; }))];
+        attempts.forEach(function (a) {
+          rows.push([a.studentId, nameOf(a), a.attemptNumber || 1, a.status === 'submitted' && isPending(a) ? 'to mark' : a.status, a.status === 'submitted' && !isPending(a) ? a.score : '', a.earnedPoints == null ? '' : a.earnedPoints, a.totalPoints == null ? '' : a.totalPoints, a.passed ? 'yes' : 'no', a.released ? 'yes' : 'no', a.startedAt || '', a.submittedAt || '', a.timeTaken ? Math.round(a.timeTaken / 6) / 10 : '', a.integrity ? a.integrity.count : 0, a.offlineSubmit ? 'yes' : '']
+            .concat(qs.map(function (q) { var it = a.grading && a.grading.items && a.grading.items[q.id]; return it ? (it.status === 'pending' ? 'to mark' : it.score) : ''; })));
+        });
+        DBI.downloadCsv((current.title || 'results').replace(/[^\w-]+/g, '_') + '_results.csv', rows);
+      };
+
+      init().catch(function (e) { document.getElementById('view').innerHTML = '<div class="card empty"><p>' + esc(e.message) + '</p></div>'; });
+    })();
+  </script>
 </body>
 </html>

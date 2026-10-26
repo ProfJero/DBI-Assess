@@ -1,0 +1,91 @@
+/* DBI Assess exam player */
+body.exam { background: #f3f6f4; }
+.exam-top { position: sticky; top: 0; z-index: 30; display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: #fff; border-bottom: 1px solid var(--line); min-height: 60px; }
+.exam-top .title { flex: 1; min-width: 0; }
+.exam-top .title b { display: block; font-size: .95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.exam-top .title small { color: var(--muted); font-size: .78rem; }
+.timer { display: inline-flex; align-items: center; gap: 6px; padding: 8px 12px; border-radius: 12px; background: var(--green-50); color: var(--green-700); font: 700 1.05rem var(--mono); font-variant-numeric: tabular-nums; }
+.timer.warn { background: var(--amber-50); color: var(--amber); }
+.timer.danger { background: var(--red-50); color: var(--red); animation: pulse 1s infinite; }
+@keyframes pulse { 50% { opacity: .65; } }
+.sync { display: inline-flex; align-items: center; gap: 6px; font-size: .78rem; font-weight: 600; color: var(--muted); padding: 6px 10px; border-radius: 999px; background: #f2f4f7; white-space: nowrap; }
+.sync.ok { color: var(--green-700); background: var(--green-50); }
+.sync.off { color: var(--amber); background: var(--amber-50); }
+.sync .ic { width: 16px; height: 16px; }
+@media (max-width: 520px) { .sync span { display: none; } .exam-top .title small { display: none; } }
+.exam-progress { height: 4px; background: #e4e7ec; }
+.exam-progress i { display: block; height: 100%; background: linear-gradient(90deg, var(--green), var(--blue)); transition: width .3s; }
+
+.exam-main { max-width: 760px; margin: 0 auto; padding: 18px 14px 120px; position: relative; }
+.qcard { background: #fff; border-radius: 18px; border: 1px solid var(--line); box-shadow: var(--shadow); padding: 20px 18px; margin-bottom: 16px; }
+.qhead { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+.qnum { font-weight: 800; color: var(--blue-600); }
+.qtext { font-size: 1.12rem; line-height: 1.6; font-weight: 500; margin-bottom: 16px; overflow-wrap: anywhere; }
+.qimg { display: block; max-height: 340px; margin: 0 auto 16px; border-radius: 12px; }
+.flag-btn { margin-left: auto; }
+.flag-btn[aria-pressed="true"] { background: var(--amber-50); color: var(--amber); border-color: #fedf89; }
+
+.opts { display: grid; gap: 10px; }
+.opt { position: relative; display: flex; align-items: center; gap: 12px; padding: 14px; min-height: 58px; border: 2px solid var(--line); border-radius: 14px; background: #fff; cursor: pointer; font-size: 1.02rem; transition: border-color .12s, background .12s; }
+.opt:hover { border-color: #b2ccff; }
+.opt input { position: absolute; opacity: 0; pointer-events: none; }
+.opt .key { width: 34px; height: 34px; flex-shrink: 0; display: grid; place-items: center; border-radius: 10px; background: #f2f4f7; font-weight: 800; color: var(--ink-2); }
+.opt.multi .key { border-radius: 8px; }
+.opt.selected { border-color: var(--blue); background: var(--blue-50); }
+.opt.selected .key { background: var(--blue); color: #fff; }
+.opt:focus-within { outline: 3px solid rgba(11, 123, 232, .35); outline-offset: 2px; }
+.opt.correct { border-color: var(--green); background: var(--green-50); }
+.opt.wrong { border-color: var(--red); background: var(--red-50); }
+.opt img { max-height: 120px; border-radius: 8px; }
+.tf { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.tf .opt { justify-content: center; font-weight: 700; font-size: 1.1rem; min-height: 72px; }
+.blank-input { display: inline-block; width: auto; min-width: 120px; max-width: 100%; min-height: 42px; padding: 6px 10px; margin: 2px 4px; border: 0; border-bottom: 2.5px solid var(--blue); border-radius: 6px 6px 0 0; background: var(--blue-50); font: inherit; }
+.blank-input:focus { outline: none; background: #dbeafe; }
+.match-row { display: grid; gap: 8px; padding: 12px; border: 1.5px solid var(--line); border-radius: 12px; margin-bottom: 10px; }
+@media (min-width: 560px) { .match-row { grid-template-columns: 1fr 1fr; align-items: center; } }
+.order-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.order-list li { display: flex; align-items: center; gap: 10px; padding: 10px 10px 10px 14px; border: 2px solid var(--line); border-radius: 12px; background: #fff; }
+.order-list li .pos { width: 30px; height: 30px; border-radius: 8px; background: var(--blue-50); color: var(--blue-600); font-weight: 800; display: grid; place-items: center; flex-shrink: 0; }
+.order-list li .txt { flex: 1; }
+.order-list .icon-btn { width: 40px; height: 40px; border: 1px solid var(--line); }
+textarea.code-input { font: 14px/1.5 var(--mono); min-height: 220px; background: #0f172a; color: #e2e8f0; border-color: #1e293b; tab-size: 2; font-variant-ligatures: none; }
+.words { text-align: right; font-size: .82rem; color: var(--muted); margin-top: 4px; }
+.words.over { color: var(--red); font-weight: 700; }
+.feedback { margin-top: 14px; }
+
+.exam-nav { position: fixed; z-index: 25; left: 0; right: 0; bottom: 0; display: flex; gap: 10px; align-items: center; padding: 10px 14px calc(10px + env(safe-area-inset-bottom)); background: rgba(255, 255, 255, .97); border-top: 1px solid var(--line); }
+.exam-nav .btn { flex: 1; max-width: 220px; }
+.exam-nav .count { flex: 1; text-align: center; font-size: .85rem; color: var(--muted); }
+@media (min-width: 760px) { .exam-nav { justify-content: center; } .exam-nav .count { flex: 0 0 200px; } }
+
+.drawer-wrap { position: fixed; inset: 0; z-index: 60; background: rgba(16, 24, 40, .45); display: flex; justify-content: flex-end; }
+.drawer { width: min(92vw, 380px); height: 100%; background: #fff; padding: 18px; overflow-y: auto; box-shadow: var(--shadow-lg); }
+.navgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(46px, 1fr)); gap: 8px; margin: 14px 0; }
+.navgrid button { position: relative; height: 46px; border-radius: 10px; border: 2px solid var(--line); background: #fff; font-weight: 700; cursor: pointer; }
+.navgrid button.answered { background: var(--green-50); border-color: #a6f4c5; color: var(--green-700); }
+.navgrid button.flagged::after { content: ''; position: absolute; top: -4px; right: -4px; width: 12px; height: 12px; border-radius: 50%; background: #f79009; border: 2px solid #fff; }
+.navgrid button.current { border-color: var(--blue); box-shadow: 0 0 0 2px var(--blue); }
+.navgrid button:disabled { opacity: .45; cursor: not-allowed; }
+.legend { display: flex; flex-wrap: wrap; gap: 12px; font-size: .8rem; color: var(--muted); }
+.legend i { display: inline-block; width: 12px; height: 12px; border-radius: 4px; margin-right: 4px; vertical-align: -1px; border: 2px solid var(--line); }
+.legend i.a { background: var(--green-50); border-color: #a6f4c5; } .legend i.f { background: #f79009; border-color: #f79009; border-radius: 50%; }
+
+/* Watermark with the student's name: discourages photos and identifies leaks. */
+.watermark { position: fixed; inset: 0; z-index: 20; pointer-events: none; opacity: .07; background-repeat: repeat; }
+
+/* Integrity: blur the questions when the window loses focus; block selection and printing. */
+.blurred .exam-main { filter: blur(9px); }
+.no-select .qcard, .no-select .qtext { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+.no-select .qcard input, .no-select .qcard textarea { -webkit-user-select: text; user-select: text; }
+@media print { .no-print body * { display: none !important; } .no-print body::after { content: 'Printing is disabled during this test.'; display: block; padding: 40px; font: 20px sans-serif; } }
+
+.overlay { position: fixed; inset: 0; z-index: 70; display: grid; place-items: center; padding: 20px; background: rgba(16, 24, 40, .82); color: #fff; text-align: center; }
+.overlay .box { max-width: 440px; }
+.overlay .ic { width: 52px; height: 52px; margin-bottom: 10px; }
+.screen { max-width: 640px; margin: 0 auto; padding: 22px 16px 60px; }
+.rules { display: grid; gap: 8px; margin: 12px 0; padding: 0; list-style: none; }
+.rules li { display: flex; gap: 10px; align-items: flex-start; font-size: .94rem; }
+.rules .ic { color: var(--blue-600); margin-top: 2px; }
+.score-ring { width: 150px; height: 150px; margin: 10px auto 14px; border-radius: 50%; display: grid; place-items: center; background: conic-gradient(var(--green) calc(var(--p) * 1%), #e4e7ec 0); }
+.score-ring > div { width: 118px; height: 118px; border-radius: 50%; background: #fff; display: grid; place-items: center; font-size: 2rem; font-weight: 800; }
+.big-ic { width: 64px; height: 64px; margin: 0 auto 8px; display: block; }

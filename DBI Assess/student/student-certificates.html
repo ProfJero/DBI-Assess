@@ -1018,6 +1018,8 @@
     ============================================================ -->
     
     <!-- Load the Student Certificates module -->
+    <script src="../shared/config.js"></script>
+    <script src="../shared/core.js"></script>
     <script src="js/certificates.js"></script>
     
     <script>
@@ -1025,57 +1027,16 @@
         // FIREBASE CONFIGURATION
         // ============================================================
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyCdrmMMmZ0xdC2A_GXdAcWnUAa1i6QbjwQ",
-            authDomain: "dbi-assess.firebaseapp.com",
-            projectId: "dbi-assess",
-            storageBucket: "dbi-assess.firebasestorage.app",
-            messagingSenderId: "558455201415",
-            appId: "1:558455201415:web:4a12a7b7c4cff9ecb6a222",
-            measurementId: "G-FE2BPSJ4C5"
-        };
-
-        let db = null;
+        // Firebase and sign-in come from shared/core.js; the student is a signed-in Firebase user.
+        let db = DBI.db;
         let currentUser = null;
 
-        try {
-            firebase.initializeApp(firebaseConfig);
-            db = firebase.firestore();
-            console.log('✅ Firebase initialized successfully');
-        } catch (error) {
-            console.error('❌ Firebase initialization error:', error);
-        }
-
-        // ============================================================
-        // AUTHENTICATION CHECK
-        // ============================================================
-
-        function checkAuth() {
-            const userData = sessionStorage.getItem('dbi_assess_user');
-            
-            if (userData) {
-                try {
-                    currentUser = JSON.parse(userData);
-                    console.log('👤 Student logged in:', currentUser);
-                    console.log('🆔 Student ID:', currentUser.studentId);
-                    updateStudentUI();
-                    
-                    // Initialize the StudentCertificates module
-                    if (typeof StudentCertificates !== 'undefined') {
-                        console.log('✅ StudentCertificates module found, initializing...');
-                        StudentCertificates.init(db, currentUser);
-                    } else {
-                        console.error('❌ StudentCertificates module not loaded. Check if js/certificates.js is loaded correctly.');
-                        showToast('Error loading certificates module. Please refresh the page.', true);
-                    }
-                    return;
-                } catch (e) {
-                    console.warn('Invalid session data:', e);
-                }
-            }
-
-            console.log('🔐 No student logged in, redirecting...');
-            window.location.href = '../index.html';
+        async function checkAuth() {
+            const me = await DBI.requireStudent();
+            const p = me.profile || {};
+            currentUser = { studentId: me.studentId, firstName: p.firstName || me.name.split(' ')[0], lastName: p.lastName || '', email: p.email || '' };
+            updateStudentUI();
+            StudentCertificates.init(db, currentUser);
         }
 
         function updateStudentUI() {
@@ -1103,10 +1064,7 @@
         }
 
         function handleLogout() {
-            if (confirm('Are you sure you want to logout?')) {
-                sessionStorage.removeItem('dbi_assess_user');
-                window.location.href = '../index.html';
-            }
+            DBI.confirm('Sign out?', 'You can sign in again any time with your Student ID.', 'Sign out').then(function (ok) { if (ok) DBI.signOut(); });
         }
 
         function showToast(message, isError = false) {

@@ -1,1084 +1,243 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    <title>Students Management - DBI Assess Admin</title>
-    
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: {
-                            50: '#eff6ff',
-                            100: '#dbeafe',
-                            200: '#bfdbfe',
-                            300: '#93c5fd',
-                            400: '#60a5fa',
-                            500: '#3b82f6',
-                            600: '#2563eb',
-                            700: '#1d4ed8',
-                            800: '#1e40af',
-                            900: '#1e3a8a',
-                        },
-                        sidebar: '#1a1f2c',
-                        success: '#10b981',
-                        warning: '#f59e0b',
-                        danger: '#ef4444',
-                        info: '#06b6d4',
-                    },
-                    fontFamily: {
-                        'inter': ['Inter', 'system-ui', 'sans-serif'],
-                    },
-                    animation: {
-                        'fade-in': 'fadeIn 0.3s ease-out',
-                        'slide-up': 'slideUp 0.3s ease-out',
-                    },
-                    boxShadow: {
-                        'soft': '0 2px 15px -3px rgba(0,0,0,0.07), 0 10px 20px -2px rgba(0,0,0,0.04)',
-                        'strong': '0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)',
-                    }
-                }
-            }
-        }
-    </script>
-    
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"/>
-    
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    
-    <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-    
-    <style>
-        /* ============================================================
-           DBI ASSESS ADMIN - STUDENTS STYLES
-           ============================================================ */
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background: #f0f2f5;
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-
-        /* ===== SIDEBAR ===== */
-        .sidebar {
-            width: 260px;
-            background: #1a1f2c;
-            color: white;
-            min-height: 100vh;
-            position: fixed;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            overflow-y: auto;
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            z-index: 1000;
-            padding-bottom: 20px;
-        }
-
-        .sidebar::-webkit-scrollbar {
-            width: 4px;
-        }
-        .sidebar::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        .sidebar::-webkit-scrollbar-thumb {
-            background: #374151;
-            border-radius: 2px;
-        }
-
-        .sidebar-brand {
-            padding: 20px 20px 16px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            position: sticky;
-            top: 0;
-            background: #1a1f2c;
-            z-index: 2;
-        }
-
-        .sidebar-brand .brand-icon {
-            width: 40px;
-            height: 40px;
-            background: linear-gradient(135deg, #166534, #22c55e);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            flex-shrink: 0;
-        }
-
-        .sidebar-brand .brand-text {
-            font-size: 18px;
-            font-weight: 700;
-            line-height: 1.2;
-        }
-        .sidebar-brand .brand-text span {
-            color: #22c55e;
-        }
-        .sidebar-brand .brand-sub {
-            font-size: 9px;
-            color: #6b7280;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            margin-top: 1px;
-        }
-
-        .sidebar-menu {
-            padding: 12px 10px;
-        }
-
-        .sidebar-menu .menu-label {
-            font-size: 10px;
-            text-transform: uppercase;
-            color: #6b7280;
-            letter-spacing: 1.2px;
-            padding: 12px 12px 6px;
-            font-weight: 600;
-        }
-
-        .sidebar-menu .menu-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 10px 14px;
-            border-radius: 10px;
-            color: #9ca3af;
-            transition: all 0.25s ease;
-            cursor: pointer;
-            margin-bottom: 2px;
-            font-family: 'Inter', sans-serif;
-            font-size: 14px;
-            background: none;
-            border: none;
-            width: 100%;
-            text-align: left;
-        }
-
-        .sidebar-menu .menu-item:hover {
-            background: rgba(255, 255, 255, 0.06);
-            color: white;
-        }
-
-        .sidebar-menu .menu-item.active {
-            background: linear-gradient(135deg, #166534, #15803d);
-            color: white;
-            box-shadow: 0 4px 15px rgba(22, 101, 52, 0.3);
-        }
-
-        .sidebar-menu .menu-item i {
-            width: 20px;
-            text-align: center;
-            font-size: 16px;
-            flex-shrink: 0;
-        }
-
-        .sidebar-menu .menu-item .badge {
-            margin-left: auto;
-            background: #dc2626;
-            color: white;
-            font-size: 10px;
-            padding: 1px 8px;
-            border-radius: 12px;
-            font-weight: 600;
-        }
-        .sidebar-menu .menu-item .badge.green {
-            background: #22c55e;
-        }
-
-        /* ===== MAIN CONTENT ===== */
-        .main-content {
-            flex: 1;
-            margin-left: 260px;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        /* ===== TOP HEADER ===== */
-        .top-header {
-            background: white;
-            padding: 12px 24px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #e5e7eb;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            min-height: 64px;
-            flex-shrink: 0;
-        }
-
-        .top-header .header-left {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            min-width: 0;
-        }
-
-        .top-header .header-left .hamburger {
-            display: none;
-            background: none;
-            border: none;
-            font-size: 22px;
-            color: #1a1f2c;
-            cursor: pointer;
-            padding: 4px;
-            flex-shrink: 0;
-        }
-
-        .top-header .header-left .page-title h1 {
-            font-size: 18px;
-            font-weight: 700;
-            color: #1a1f2c;
-        }
-
-        .top-header .header-left .page-title p {
-            font-size: 12px;
-            color: #6b7280;
-        }
-
-        .top-header .header-right {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            flex-shrink: 0;
-        }
-
-        .top-header .header-right .admin-profile {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-            padding: 4px 12px 4px 4px;
-            border-radius: 30px;
-            transition: background 0.2s ease;
-        }
-
-        .top-header .header-right .admin-profile:hover {
-            background: #f3f4f6;
-        }
-
-        .top-header .header-right .admin-profile .avatar {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #166534, #22c55e);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 700;
-            font-size: 13px;
-            flex-shrink: 0;
-        }
-
-        .top-header .header-right .admin-profile .admin-info .name {
-            font-weight: 600;
-            color: #1a1f2c;
-            font-size: 13px;
-        }
-
-        .top-header .header-right .admin-profile .admin-info .role {
-            color: #6b7280;
-            font-size: 11px;
-        }
-
-        /* ===== CONTENT AREA ===== */
-        .content-area {
-            padding: 20px 24px 40px;
-            flex: 1;
-        }
-
-        /* ===== PAGE HEADER ===== */
-        .page-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 24px;
-            flex-wrap: wrap;
-            gap: 12px;
-        }
-        .page-header h2 {
-            font-size: 24px;
-            font-weight: 700;
-            color: #1a1f2c;
-            margin: 0;
-        }
-        .page-header .subtitle {
-            color: #6b7280;
-            font-size: 14px;
-            margin-top: 4px;
-        }
-        .header-actions {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        /* ===== STATS CARDS ===== */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 16px;
-            margin-bottom: 24px;
-        }
-        .stat-card {
-            background: white;
-            border-radius: 12px;
-            padding: 16px 20px;
-            border: 1px solid #e5e7eb;
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            transition: all 0.3s ease;
-        }
-        .stat-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.06);
-        }
-        .stat-card .stat-icon {
-            width: 44px;
-            height: 44px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            flex-shrink: 0;
-        }
-        .stat-card .stat-icon.blue { background: #dbeafe; color: #1d4ed8; }
-        .stat-card .stat-icon.green { background: #dcfce7; color: #166534; }
-        .stat-card .stat-icon.orange { background: #fef3c7; color: #d97706; }
-        .stat-card .stat-icon.purple { background: #ede9fe; color: #7c3aed; }
-        .stat-card .stat-number {
-            font-size: 22px;
-            font-weight: 700;
-            color: #1a1f2c;
-            line-height: 1.2;
-        }
-        .stat-card .stat-label {
-            font-size: 12px;
-            color: #6b7280;
-        }
-
-        /* ===== FILTER BAR ===== */
-        .filter-bar {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin-bottom: 20px;
-            background: white;
-            padding: 14px 18px;
-            border-radius: 12px;
-            border: 1px solid #e5e7eb;
-            align-items: center;
-        }
-        .filter-group {
-            flex: 1;
-            min-width: 120px;
-            position: relative;
-        }
-        .filter-group.search-group {
-            flex: 2;
-            min-width: 180px;
-        }
-        .filter-group.search-group i {
-            position: absolute;
-            left: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #9ca3af;
-            font-size: 14px;
-        }
-        .filter-group.search-group input {
-            padding-left: 36px;
-        }
-        .filter-group input,
-        .filter-group select {
-            width: 100%;
-            padding: 8px 12px;
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            font-size: 13px;
-            font-family: 'Inter', sans-serif;
-            background: #f8fafc;
-            transition: all 0.3s ease;
-        }
-        .filter-group input:focus,
-        .filter-group select:focus {
-            border-color: #22c55e;
-            outline: none;
-            background: white;
-            box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1);
-        }
-
-        /* ===== TABLE ===== */
-        .table-container {
-            background: white;
-            border-radius: 12px;
-            border: 1px solid #e5e7eb;
-            overflow: hidden;
-        }
-        .table-header {
-            padding: 14px 20px;
-            border-bottom: 1px solid #e5e7eb;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        .table-header span {
-            font-weight: 600;
-            font-size: 14px;
-            color: #1a1f2c;
-        }
-        .table-header .table-count {
-            font-weight: 400;
-            color: #6b7280;
-            font-size: 13px;
-        }
-        .table-scroll {
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            min-width: 700px;
-        }
-        table th {
-            background: #f8fafc;
-            padding: 12px 16px;
-            text-align: left;
-            font-size: 11px;
-            font-weight: 600;
-            color: #6b7280;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            border-bottom: 1px solid #e5e7eb;
-            white-space: nowrap;
-        }
-        table td {
-            padding: 12px 16px;
-            font-size: 13px;
-            color: #1a1f2c;
-            border-bottom: 1px solid #f3f4f6;
-            vertical-align: middle;
-        }
-        table tr:last-child td {
-            border-bottom: none;
-        }
-        table tr:hover td {
-            background: #fafafa;
-        }
-
-        /* Badges */
-        .badge-status {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 4px 14px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            white-space: nowrap;
-        }
-        .badge-status.active { background: #dcfce7; color: #166534; }
-        .badge-status.inactive { background: #fee2e2; color: #991b1b; }
-        .badge-status.pending { background: #fef3c7; color: #92400e; }
-        .badge-status.suspended { background: #f3f4f6; color: #4b5563; }
-
-        /* Action Buttons */
-        .action-btns {
-            display: flex;
-            gap: 4px;
-            flex-wrap: wrap;
-        }
-        .action-btns button {
-            background: none;
-            border: none;
-            padding: 6px 8px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.2s ease;
-            color: #6b7280;
-            font-family: 'Inter', sans-serif;
-        }
-        .action-btns button:hover {
-            background: #f3f4f6;
-            color: #1a1f2c;
-        }
-        .action-btns button.edit:hover {
-            color: #166534;
-            background: #dcfce7;
-        }
-        .action-btns button.delete:hover {
-            color: #dc2626;
-            background: #fee2e2;
-        }
-        .action-btns button.view:hover {
-            color: #1d4ed8;
-            background: #dbeafe;
-        }
-        .action-btns button.suspend:hover {
-            color: #d97706;
-            background: #fef3c7;
-        }
-
-        /* Empty State */
-        .empty-state {
-            text-align: center;
-            padding: 50px 20px;
-            color: #6b7280;
-        }
-        .empty-state i {
-            font-size: 40px;
-            color: #d1d5db;
-            margin-bottom: 14px;
-            display: block;
-        }
-        .empty-state h3 {
-            font-size: 17px;
-            color: #1a1f2c;
-            margin-bottom: 6px;
-        }
-        .empty-state p {
-            font-size: 14px;
-        }
-
-        /* Toast */
-        .toast {
-            position: fixed;
-            bottom: 24px;
-            right: 24px;
-            background: #1a1f2c;
-            color: white;
-            padding: 14px 22px;
-            border-radius: 12px;
-            font-weight: 500;
-            font-size: 13px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            transform: translateY(120%);
-            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-            z-index: 2000;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            max-width: 90%;
-        }
-        .toast.show {
-            transform: translateY(0);
-        }
-        .toast i {
-            font-size: 18px;
-        }
-        .toast.success { background: #166534; }
-        .toast.error { background: #dc2626; }
-
-        /* Sidebar overlay */
-        .sidebar-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.4);
-            z-index: 999;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-        .sidebar-overlay.show {
-            display: block;
-            opacity: 1;
-        }
-
-        /* Buttons */
-        .btn-primary {
-            background: linear-gradient(135deg, #166534, #22c55e);
-            color: white;
-            border: none;
-            padding: 8px 18px;
-            border-radius: 10px;
-            font-weight: 600;
-            font-size: 13px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            font-family: 'Inter', sans-serif;
-            white-space: nowrap;
-        }
-        .btn-primary:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 15px rgba(22, 101, 52, 0.3);
-        }
-
-        .btn-secondary {
-            background: #f3f4f6;
-            color: #1a1f2c;
-            border: 1px solid #e5e7eb;
-            padding: 8px 18px;
-            border-radius: 10px;
-            font-weight: 600;
-            font-size: 13px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            font-family: 'Inter', sans-serif;
-            white-space: nowrap;
-        }
-        .btn-secondary:hover {
-            background: #e5e7eb;
-        }
-
-        .btn-sm {
-            padding: 5px 12px;
-            font-size: 12px;
-            border-radius: 8px;
-        }
-
-        /* Responsive */
-        @media (max-width: 1024px) {
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        @media (max-width: 768px) {
-            .sidebar {
-                transform: translateX(-100%);
-                width: 280px;
-            }
-            .sidebar.open {
-                transform: translateX(0);
-                box-shadow: 0 0 40px rgba(0,0,0,0.3);
-            }
-            .sidebar-overlay.show {
-                display: block;
-            }
-            .main-content {
-                margin-left: 0;
-            }
-            .top-header {
-                padding: 10px 16px;
-                min-height: 56px;
-            }
-            .top-header .header-left .hamburger {
-                display: block;
-            }
-            .top-header .header-left .page-title h1 {
-                font-size: 16px;
-            }
-            .top-header .header-left .page-title p {
-                font-size: 11px;
-            }
-            .top-header .header-right .admin-profile .admin-info {
-                display: none;
-            }
-            .content-area {
-                padding: 16px;
-            }
-            .stats-grid {
-                grid-template-columns: 1fr 1fr;
-                gap: 10px;
-            }
-            .stat-card {
-                padding: 14px 16px;
-            }
-            .stat-card .stat-number {
-                font-size: 20px;
-            }
-            .filter-bar {
-                flex-direction: column;
-            }
-            .filter-group {
-                min-width: 100%;
-            }
-            table {
-                min-width: 600px;
-                font-size: 12px;
-            }
-            table th, table td {
-                padding: 10px 12px;
-            }
-            .page-header {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-            .page-header .header-actions {
-                width: 100%;
-            }
-            .page-header .header-actions .btn-primary {
-                flex: 1;
-                justify-content: center;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .stats-grid {
-                grid-template-columns: 1fr 1fr;
-                gap: 8px;
-            }
-            .stat-card {
-                padding: 12px;
-                gap: 10px;
-            }
-            .stat-card .stat-icon {
-                width: 36px;
-                height: 36px;
-                font-size: 16px;
-            }
-            .stat-card .stat-number {
-                font-size: 17px;
-            }
-            .stat-card .stat-label {
-                font-size: 11px;
-            }
-            table {
-                font-size: 11px;
-                min-width: 500px;
-            }
-            table th, table td {
-                padding: 8px 10px;
-            }
-            .badge-status {
-                font-size: 10px;
-                padding: 3px 10px;
-            }
-        }
-
-        /* Scrollbar */
-        ::-webkit-scrollbar {
-            width: 5px;
-            height: 5px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 3px;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #c1c7cd;
-            border-radius: 3px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #a0a8b0;
-        }
-    </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Students — DBI Assess Admin</title>
+  <meta name="robots" content="noindex">
+  <link rel="icon" href="../images/icon-192.png">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../shared/ui.css">
 </head>
 <body>
+  <main class="page">
+    <div class="page-head"><div><h1>Students</h1><p id="sub">Accounts, passwords and extra time.</p></div>
+      <div class="row"><button class="btn ghost" id="bulkBtn"></button><button class="btn ghost" id="regBtn"></button><button class="btn primary" id="addBtn"></button></div></div>
+    <div id="banner"></div>
+    <div class="toolbar"><input class="input" id="q" type="search" placeholder="Search name, Student ID, school"><select class="input" id="sf" style="max-width:180px"><option value="">Everyone</option><option value="active">Active</option><option value="suspended">Suspended</option><option value="extra">Has extra time</option></select><button class="btn ghost sm" id="csvBtn"></button></div>
+    <div id="list"><div class="card skeleton" style="height:160px"></div></div>
+  </main>
 
-    <!-- Sidebar Overlay (Mobile) -->
-    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="../shared/config.js"></script>
+  <script src="../shared/core.js"></script>
+  <script src="../shared/admin.js"></script>
+  <script>
+    (async function () {
+      var me = await DBI.requireAdmin();
+      DBI.adminShell('students', me);
+      var esc = DBI.esc, icon = DBI.icon;
+      var students = [], shown = 50;
+      document.getElementById('addBtn').innerHTML = icon('plus') + 'Add student';
+      document.getElementById('bulkBtn').innerHTML = icon('upload') + 'Add many (CSV)';
+      document.getElementById('regBtn').innerHTML = icon('refresh') + 'Import from DBI registry';
+      document.getElementById('csvBtn').innerHTML = icon('download') + 'Export';
 
-    <!-- ===== SIDEBAR ===== -->
-    <aside class="sidebar" id="sidebar">
-        <div class="sidebar-brand">
-            <div class="brand-icon">
-                <i class="fas fa-graduation-cap"></i>
-            </div>
-            <div>
-                <div class="brand-text">DBI <span>Assess</span></div>
-                <div class="brand-sub">Admin Panel</div>
-            </div>
-        </div>
+      function sidKey(s) { return String(s || '').trim().toUpperCase(); }
+      function fullName(u) { return ((u.firstName || '') + ' ' + (u.lastName || '')).trim() || '—'; }
+      function genPassword() {
+        var chars = 'abcdefghjkmnpqrstuvwxyz23456789';
+        var out = '';
+        crypto.getRandomValues(new Uint8Array(8)).forEach(function (n) { out += chars[n % chars.length]; });
+        return out;
+      }
 
-        <nav class="sidebar-menu">
-            <div class="menu-label">Main</div>
-            <a href="dashboard.html" class="menu-item">
-                <i class="fas fa-th-large"></i> Dashboard
-            </a>
-            <a href="assessments.html" class="menu-item">
-                <i class="fas fa-file-alt"></i> Assessments
-                <span class="badge green" id="assessmentCount">0</span>
-            </a>
-            <a href="questions.html" class="menu-item">
-                <i class="fas fa-question-circle"></i> Question Bank
-                <span class="badge green" id="questionCount">0</span>
-            </a>
+      async function load() {
+        var snap = await DBI.db.collection('users').get();
+        var all = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); }).filter(function (u) { return u.studentId; });
+        // After the password upgrade each student has users/stu_<ID>; hide the older random-id copies.
+        var canonical = {};
+        all.forEach(function (u) { if (u.id === 'stu_' + sidKey(u.studentId)) canonical[sidKey(u.studentId)] = true; });
+        students = all.filter(function (u) { return u.id === 'stu_' + sidKey(u.studentId) || !canonical[sidKey(u.studentId)]; }).sort(function (a, b) { return sidKey(a.studentId).localeCompare(sidKey(b.studentId)); });
+        var plain = all.filter(function (u) { return u.password; }).length;
+        document.getElementById('banner').innerHTML = plain ? '<div class="alert error" style="margin-bottom:14px">' + icon('lock') + '<span><b>' + plain + ' password' + (plain > 1 ? 's are' : ' is') + ' stored as plain text</b> from the old system. Anyone with database access can read them. <a href="#" id="secure">Protect them now</a> — students keep the same password.</span></div>' : '';
+        var sec = document.getElementById('secure');
+        if (sec) sec.onclick = secure;
+        document.getElementById('sub').textContent = students.length + ' students · ' + students.filter(function (u) { return u.status === 'suspended'; }).length + ' suspended';
+        draw();
+      }
 
-            <div class="menu-label">Management</div>
-            <a href="students.html" class="menu-item active">
-                <i class="fas fa-users"></i> Students
-                <span class="badge green" id="studentCount">0</span>
-            </a>
-            <a href="results.html" class="menu-item">
-                <i class="fas fa-chart-bar"></i> Results
-            </a>
-            <a href="certificates.html" class="menu-item">
-                <i class="fas fa-certificate"></i> Certificates
-                <span class="badge green" id="certificateCount">0</span>
-            </a>
-
-            <div class="menu-label">Settings</div>
-            <a href="settings.html" class="menu-item">
-                <i class="fas fa-cog"></i> Settings
-            </a>
-            <a href="#" class="menu-item" onclick="handleLogout()">
-                <i class="fas fa-sign-out-alt"></i> Logout
-            </a>
-        </nav>
-    </aside>
-
-    <!-- ===== MAIN CONTENT ===== -->
-    <div class="main-content">
-        <!-- Top Header -->
-        <header class="top-header">
-            <div class="header-left">
-                <button class="hamburger" id="hamburgerBtn">
-                    <i class="fas fa-bars"></i>
-                </button>
-                <div class="page-title">
-                    <h1>Student Management</h1>
-                    <p>View and manage all registered students</p>
-                </div>
-            </div>
-            <div class="header-right">
-                <button class="btn-primary" onclick="Students.openCreate()">
-                    <i class="fas fa-user-plus"></i> Add Student
-                </button>
-                <div class="admin-profile">
-                    <div class="avatar" id="adminAvatar">A</div>
-                    <div class="admin-info">
-                        <div class="name" id="adminName">Admin</div>
-                        <div class="role" id="adminRole">Super Admin</div>
-                    </div>
-                    <i class="fas fa-chevron-down chevron"></i>
-                </div>
-            </div>
-        </header>
-
-        <!-- Content Area -->
-        <div class="content-area" id="pageContent">
-            <!-- Page content loaded dynamically -->
-        </div>
-    </div>
-
-    <!-- ===== TOAST ===== -->
-    <div id="toast" class="toast">
-        <i class="fas fa-check-circle"></i>
-        <span id="toastMessage">Success!</span>
-    </div>
-
-    <!-- ===== MODAL ===== -->
-    <div class="modal-overlay" id="modalOverlay">
-        <div class="modal">
-            <div class="modal-header">
-                <h3 id="modalTitle">Modal</h3>
-                <button class="close-modal" onclick="closeModal()">&times;</button>
-            </div>
-            <div class="modal-body" id="modalBody">
-                <!-- Dynamic content -->
-            </div>
-        </div>
-    </div>
-
-    <!-- ============================================================
-    JAVASCRIPT
-    ============================================================ -->
-    <script src="js/students.js"></script>
-
-<script>
-    // ============================================================
-    // FIREBASE CONFIGURATIONS
-    // ============================================================
-
-    // Main Database (rth-admin-dues) – source of truth for students
-    const mainFirebaseConfig = {
-        apiKey: "AIzaSyDqB6Qekb-YcaPzEqvlHKhFGDOx6nh-7bA",
-        authDomain: "rth-admin-dues.firebaseapp.com",
-        projectId: "rth-admin-dues",
-        storageBucket: "rth-admin-dues.firebasestorage.app",
-        messagingSenderId: "825570303872",
-        appId: "1:825570303872:web:89fe0f6b751b7ae2f42b65",
-        measurementId: "G-6512Y183F4"
-    };
-
-    // Assessment Database (dbi-assess) – for admin auth, progress, etc.
-    const assessmentFirebaseConfig = {
-        apiKey: "AIzaSyCdrmMMmZ0xdC2A_GXdAcWnUAa1i6QbjwQ",
-        authDomain: "dbi-assess.firebaseapp.com",
-        projectId: "dbi-assess",
-        storageBucket: "dbi-assess.firebasestorage.app",
-        messagingSenderId: "558455201415",
-        appId: "1:558455201415:web:4a12a7b7c4cff9ecb6a222",
-        measurementId: "G-FE2BPSJ4C5"
-    };
-
-    let mainDb = null;
-    let assessmentDb = null;
-    let currentUser = null;
-
-    try {
-        // Initialize Assessment as the default app (no name) – same as admin login
-        firebase.initializeApp(assessmentFirebaseConfig);
-        
-        // Initialize Main DB with a unique name
-        firebase.initializeApp(mainFirebaseConfig, 'mainApp');
-
-        // Get Firestore instances
-        mainDb = firebase.firestore(firebase.app('mainApp'));
-        assessmentDb = firebase.firestore(); // default app
-
-        console.log('✅ Both Firebase apps initialized successfully');
-        console.log('   - Main DB: rth-admin-dues (named: mainApp)');
-        console.log('   - Assessment DB: dbi-assess (default)');
-    } catch (error) {
-        console.error('❌ Firebase initialization error:', error);
-        showToast('Failed to connect to the server. Please refresh.', true);
-    }
-
-    // ============================================================
-    // AUTHENTICATION – using the default app (dbi-assess)
-    // ============================================================
-
-    // Use the default auth instance – same as admin login
-    const auth = firebase.auth();
-
-    auth.onAuthStateChanged(async (user) => {
-        if (user) {
-            currentUser = user;
-            console.log('✅ User logged in:', user.email || user.uid);
-
-            try {
-                // Check admin status in Assessment DB (default app)
-                const adminDoc = await assessmentDb.collection('admins').doc(user.uid).get();
-                if (adminDoc.exists) {
-                    const adminData = adminDoc.data();
-                    document.getElementById('adminName').textContent = adminData.name || user.email;
-                    document.getElementById('adminRole').textContent = adminData.role || 'Super Admin';
-                    document.getElementById('adminAvatar').textContent = (adminData.name || 'A').charAt(0).toUpperCase();
-
-                    // ============================================================
-                    // INITIALISE STUDENTS MODULE WITH MAIN DB
-                    // ============================================================
-                    const container = document.getElementById('pageContent');
-                    if (typeof Students !== 'undefined') {
-                        // ✅ Pass the MAIN DB instance
-                        Students.render(container, { db: mainDb });
-                    } else {
-                        console.error('Students module not loaded!');
-                        showToast('Error: Students module missing.', true);
-                    }
-                } else {
-                    showToast('You are not an admin', true);
-                    // Optionally sign out and redirect
-                    await auth.signOut();
-                    setTimeout(() => {
-                        window.location.href = 'admin-login.html';
-                    }, 2000);
-                }
-            } catch (error) {
-                console.error('Admin check error:', error);
-                showToast('Error verifying admin status', true);
-            }
-        } else {
-            console.log('⚠️ No user logged in – redirecting to admin login');
-            // Redirect to admin login page
-            window.location.href = 'admin-login.html';
-        }
-    });
-
-    // ============================================================
-    // GLOBAL FUNCTIONS (unchanged)
-    // ============================================================
-
-    function closeSidebar() {
-        document.getElementById('sidebar').classList.remove('open');
-        document.getElementById('sidebarOverlay').classList.remove('show');
-    }
-
-    function closeModal() {
-        const overlay = document.getElementById('modalOverlay');
-        if (overlay) overlay.classList.remove('show');
-        document.body.style.overflow = '';
-    }
-
-    function showToast(message, isError = false) {
-        const toast = document.getElementById('toast');
-        const toastMessage = document.getElementById('toastMessage');
-
-        toastMessage.textContent = message;
-        toast.className = 'toast';
-        if (isError) {
-            toast.classList.add('error');
-            toast.querySelector('i').className = 'fas fa-exclamation-circle';
-        } else {
-            toast.classList.add('success');
-            toast.querySelector('i').className = 'fas fa-check-circle';
-        }
-        toast.classList.add('show');
-
-        clearTimeout(toast._timeout);
-        toast._timeout = setTimeout(() => {
-            toast.classList.remove('show');
-        }, 4000);
-    }
-
-    function handleLogout() {
-        if (confirm('Are you sure you want to logout?')) {
-            auth.signOut().then(() => {
-                window.location.href = 'admin-login.html';
-            }).catch(error => {
-                showToast('Error logging out: ' + error.message, true);
-            });
-        }
-    }
-
-    // ============================================================
-    // EVENT LISTENERS
-    // ============================================================
-
-    document.addEventListener('DOMContentLoaded', () => {
-        document.getElementById('hamburgerBtn').addEventListener('click', () => {
-            document.getElementById('sidebar').classList.toggle('open');
-            document.getElementById('sidebarOverlay').classList.toggle('show');
+      function filtered() {
+        var t = document.getElementById('q').value.trim().toLowerCase();
+        var f = document.getElementById('sf').value;
+        return students.filter(function (u) {
+          if (f === 'active' && u.status === 'suspended') return false;
+          if (f === 'suspended' && u.status !== 'suspended') return false;
+          if (f === 'extra' && !(Number(u.extraTimePercent) > 0)) return false;
+          return !t || (fullName(u) + ' ' + u.studentId + ' ' + (u.school || '') + ' ' + (u.email || '')).toLowerCase().indexOf(t) !== -1;
         });
+      }
+      function draw() {
+        var rows = filtered();
+        var list = document.getElementById('list');
+        if (!rows.length) {
+          list.innerHTML = '<div class="card empty">' + icon('user') + '<p>' + (students.length ? 'No students match.' : 'No students yet. Add them one by one, from a CSV file, or import from the DBI registry.') + '</p></div>';
+          return;
+        }
+        list.innerHTML = '<div class="table-wrap"><table class="table"><thead><tr><th>Student</th><th>School / community</th><th>Status</th><th>Extra time</th><th></th></tr></thead><tbody>' + rows.slice(0, shown).map(function (u) {
+          return '<tr><td><b>' + esc(fullName(u)) + '</b><div class="muted small">' + esc(u.studentId) + (u.email ? ' · ' + esc(u.email) : '') + '</div></td><td class="small">' + esc(u.school || u.community || '—') + (u.educationLevel ? '<div class="muted">' + esc(u.educationLevel) + '</div>' : '') + '</td>' +
+            '<td>' + (u.status === 'suspended' ? '<span class="badge red">Suspended</span>' : '<span class="badge green">Active</span>') + '</td><td>' + (Number(u.extraTimePercent) > 0 ? '<span class="badge blue">+' + esc(u.extraTimePercent) + '%</span>' : '—') + '</td>' +
+            '<td><div class="row" style="flex-wrap:nowrap;justify-content:flex-end"><button class="btn ghost sm" data-pw="' + esc(u.id) + '">' + icon('lock') + 'Password</button><button class="btn ghost sm" data-edit="' + esc(u.id) + '" aria-label="Edit ' + esc(fullName(u)) + '">' + icon('edit') + '</button><a class="btn ghost sm" href="results.html?student=' + encodeURIComponent(u.studentId) + '" hidden></a></div></td></tr>';
+        }).join('') + '</tbody></table></div>' + (rows.length > shown ? '<div class="row" style="justify-content:center;margin-top:12px"><button class="btn ghost" id="more">Show more (' + (rows.length - shown) + ')</button></div>' : '');
+        var more = document.getElementById('more');
+        if (more) more.onclick = function () { shown += 100; draw(); };
+      }
+      document.getElementById('q').addEventListener('input', function () { shown = 50; draw(); });
+      document.getElementById('sf').addEventListener('change', function () { shown = 50; draw(); });
+      document.getElementById('list').addEventListener('click', function (e) {
+        var b = e.target.closest('button');
+        if (!b) return;
+        var u = students.filter(function (x) { return x.id === (b.dataset.pw || b.dataset.edit); })[0];
+        if (b.dataset.pw) setPassword(u);
+        if (b.dataset.edit) edit(u);
+      });
 
-        document.getElementById('sidebarOverlay').addEventListener('click', closeSidebar);
-
-        window.addEventListener('resize', () => {
-            if (window.innerWidth > 768) {
-                document.getElementById('sidebar').classList.remove('open');
-                document.getElementById('sidebarOverlay').classList.remove('show');
-            }
+      async function setPassword(u) {
+        var pw = genPassword();
+        var v = await DBI.modal({
+          title: 'New password for ' + fullName(u),
+          body: '<p class="small muted">Student ID: <b>' + esc(u.studentId) + '</b></p><label class="field"><span>New password</span><input class="input" id="npw" value="' + esc(pw) + '" autocomplete="off"></label><p class="hint">Write it down and give it to the student. It is stored securely, so it cannot be shown again.</p>',
+          actions: [{ label: 'Cancel', value: null }, { label: 'Set password', kind: 'primary', value: function (w) { return w.querySelector('#npw').value; } }],
         });
+        if (!v) return;
+        try {
+          await DBI.api('POST', '/admin/students/password', { studentId: u.studentId, password: v });
+          DBI.toast('Password updated for ' + u.studentId, 'ok');
+        } catch (e) {
+          DBI.toast(e.message, 'error');
+        }
+      }
 
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                closeModal();
-            }
+      function form(u) {
+        u = u || {};
+        var f = function (id, label, val, extra) { return '<label class="field"><span>' + label + '</span><input class="input" id="' + id + '" value="' + esc(val || '') + '"' + (extra || '') + '></label>'; };
+        return '<div class="form-grid">' + f('s_id', 'Student ID', u.studentId, u.studentId ? ' readonly' : ' placeholder="e.g. DBI-25-001" autocapitalize="characters"') + '<span></span>' +
+          f('s_first', 'First name', u.firstName) + f('s_last', 'Last name', u.lastName) + f('s_email', 'Email', u.email, ' type="email"') + f('s_phone', 'Phone', u.phone, ' type="tel"') + f('s_school', 'School', u.school) + f('s_comm', 'Community', u.community) +
+          '<label class="field"><span>Level</span><select class="input" id="s_level">' + ['', 'JHS', 'SHS', 'Tertiary', 'Other'].map(function (l) { return '<option' + (u.educationLevel === l ? ' selected' : '') + '>' + l + '</option>'; }).join('') + '</select></label>' +
+          '<label class="field"><span>Extra time (%)</span><input class="input" type="number" min="0" max="200" step="5" id="s_extra" value="' + esc(u.extraTimePercent || 0) + '"><span class="hint">For students who need more time, e.g. 25 = 25% longer on every timed test.</span></label>' +
+          '<label class="field full"><span>Status</span><select class="input" id="s_status"><option value="active">Active — can sign in</option><option value="suspended"' + (u.status === 'suspended' ? ' selected' : '') + '>Suspended — cannot sign in</option></select></label>' +
+          (u.studentId ? '' : '<label class="field full"><span>Password</span><input class="input" id="s_pw" value="' + esc(genPassword()) + '" autocomplete="off"><span class="hint">Give this to the student. They can change it on their profile page.</span></label>') + '</div>';
+      }
+      function read(w) {
+        var v = function (id) { var el = w.querySelector('#' + id); return el ? el.value.trim() : ''; };
+        return { studentId: sidKey(v('s_id')), firstName: v('s_first'), lastName: v('s_last'), email: v('s_email'), phone: v('s_phone'), school: v('s_school'), community: v('s_comm'), educationLevel: v('s_level'), status: v('s_status'), extraTimePercent: Math.max(0, Math.min(200, Number(v('s_extra')) || 0)), password: v('s_pw') };
+      }
+
+      async function edit(u) {
+        var data = await DBI.modal({ title: 'Edit student', wide: true, body: form(u), actions: [{ label: 'Cancel', value: null }, { label: 'Save', kind: 'primary', value: read }] });
+        if (!data) return;
+        delete data.password;
+        delete data.studentId;
+        data.updatedAt = firebase.firestore.FieldValue.serverTimestamp();
+        try {
+          await DBI.db.collection('users').doc(u.id).update(data);
+          DBI.toast('Saved', 'ok');
+          load();
+        } catch (e) {
+          DBI.toast(e.message, 'error');
+        }
+      }
+
+      document.getElementById('addBtn').onclick = async function () {
+        var data = await DBI.modal({
+          title: 'Add student', wide: true, body: form(null),
+          actions: [{ label: 'Cancel', value: null }, {
+            label: 'Add student', kind: 'primary', value: read,
+            validate: function (w) {
+              var d = read(w);
+              if (!/^[A-Z0-9][A-Z0-9-_/]{2,}$/.test(d.studentId)) return DBI.toast('Enter a valid Student ID.', 'error'), false;
+              if (!d.firstName) return DBI.toast('Enter the first name.', 'error'), false;
+              if (d.password.length < 6) return DBI.toast('The password needs at least 6 characters.', 'error'), false;
+              if (students.some(function (s) { return sidKey(s.studentId) === d.studentId; })) return DBI.toast('That Student ID already exists.', 'error'), false;
+              return true;
+            },
+          }],
         });
-    });
+        if (!data) return;
+        try {
+          var pw = data.password;
+          var extra = data.extraTimePercent;
+          delete data.password;
+          var r = await DBI.api('POST', '/admin/students/password', { studentId: data.studentId, password: pw, profile: data });
+          if (extra) await DBI.db.collection('users').doc(r.uid).update({ extraTimePercent: extra });
+          DBI.modal({ title: 'Student added', body: '<p>Give these sign-in details to the student:</p><dl class="kv"><dt>Student ID</dt><dd>' + esc(data.studentId) + '</dd><dt>Password</dt><dd><code>' + esc(pw) + '</code></dd></dl>' });
+          load();
+        } catch (e) {
+          DBI.toast(e.message, 'error');
+        }
+      };
 
-    console.log('%c📊 DBI Assess Admin Panel', 'font-size: 20px; font-weight: bold; color: #166534;');
-    console.log('%c🔐 Student Management System (using rth-admin-dues)', 'font-size: 14px; color: #22c55e;');
-</script>
+      document.getElementById('bulkBtn').onclick = async function () {
+        var w = document.createElement('div');
+        w.innerHTML = '<p class="small">CSV columns: <code>studentId, firstName, lastName, email, phone, school, password</code>. Leave password empty to generate one. You will download a list of the new passwords.</p><input class="input" type="file" id="bf" accept=".csv,text/csv"><div id="bp" class="small" style="margin-top:10px"></div>';
+        var rows = [];
+        w.querySelector('#bf').onchange = async function (e) {
+          var text = (await e.target.files[0].text()).replace(/^﻿/, '');
+          var lines = text.split(/\r?\n/).filter(function (l) { return l.trim(); });
+          var head = lines.shift().split(',').map(function (h) { return h.trim().replace(/^"|"$/g, '').toLowerCase(); });
+          rows = lines.map(function (l) {
+            var cells = l.match(/("([^"]|"")*"|[^,]*)(,|$)/g).map(function (c) { return c.replace(/,$/, '').replace(/^"|"$/g, '').replace(/""/g, '"').trim(); });
+            var o = {};
+            head.forEach(function (h, i) { o[h] = cells[i] || ''; });
+            return { studentId: sidKey(o.studentid || o['student id'] || o.id), firstName: o.firstname || o['first name'] || '', lastName: o.lastname || o['last name'] || '', email: o.email || '', phone: o.phone || '', school: o.school || '', password: o.password || genPassword() };
+          }).filter(function (r) { return r.studentId; });
+          w.querySelector('#bp').textContent = rows.length + ' students found.';
+        };
+        if (!(await DBI.modal({ title: 'Add many students', body: w, actions: [{ label: 'Cancel', value: null }, { label: 'Add students', kind: 'primary', value: true }] })) || !rows.length) return;
+        var out = [['Student ID', 'Name', 'Password', 'Result']];
+        var bar = document.getElementById('banner');
+        for (var i = 0; i < rows.length; i++) {
+          bar.innerHTML = '<div class="alert" style="margin-bottom:14px"><span class="spin"></span><span>Adding ' + (i + 1) + ' of ' + rows.length + '…</span></div>';
+          var r = rows[i];
+          var pw = r.password;
+          delete r.password;
+          try {
+            await DBI.api('POST', '/admin/students/password', { studentId: r.studentId, password: pw, profile: r }, { retries: 2 });
+            out.push([r.studentId, r.firstName + ' ' + r.lastName, pw, 'added']);
+          } catch (e) {
+            out.push([r.studentId, r.firstName + ' ' + r.lastName, '', e.message]);
+          }
+        }
+        DBI.downloadCsv('dbi-new-student-passwords.csv', out);
+        DBI.toast('Done. Keep the downloaded password list safe.', 'ok', 6000);
+        load();
+      };
 
+      document.getElementById('regBtn').onclick = async function () {
+        if (!(await DBI.confirm('Import students from the DBI registry?', 'Names, schools and contact details are copied. Existing students are updated, nobody is removed, and passwords are protected the first time each student signs in.', 'Import'))) return;
+        var b = this;
+        DBI.busy(b, true, 'Importing…');
+        try {
+          var r = await DBI.api('POST', '/admin/students/import', {}, { timeout: 120000 });
+          DBI.toast('Imported or updated ' + r.imported + ' students', 'ok');
+          load();
+        } catch (e) {
+          DBI.toast(e.message, 'error');
+        }
+        DBI.busy(b, false);
+      };
+
+      async function secure(e) {
+        if (e) e.preventDefault();
+        try {
+          var r = await DBI.api('POST', '/admin/students/secure-passwords', {}, { timeout: 120000 });
+          DBI.toast('Protected ' + r.hashed + ' passwords', 'ok');
+          load();
+        } catch (err) {
+          DBI.toast(err.message, 'error');
+        }
+      }
+
+      document.getElementById('csvBtn').onclick = function () {
+        DBI.downloadCsv('dbi-students.csv', [['Student ID', 'First name', 'Last name', 'Email', 'Phone', 'School', 'Community', 'Level', 'Status', 'Extra time %']].concat(filtered().map(function (u) {
+          return [u.studentId, u.firstName, u.lastName, u.email, u.phone, u.school, u.community, u.educationLevel, u.status || 'active', u.extraTimePercent || 0];
+        })));
+      };
+
+      load().catch(function (e) { document.getElementById('list').innerHTML = '<div class="card empty"><p>' + esc(e.message) + '</p></div>'; });
+    })();
+  </script>
 </body>
 </html>
